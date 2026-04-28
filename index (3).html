@@ -1,0 +1,4515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Loading UX Research Prototype</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f7fb;--panel:#ffffff;--ink:#111827;--muted:#667085;--soft:#98a2b3;
+  --line:#e4e7ec;--line2:#eef1f6;--blue:#007AFF;--blue2:#1d4f91;--blue3:#eaf4ff;
+  --dark:#071022;--dark2:#0b1730;--green:#24b47e;--red:#f04438;
+  --shadow:0 18px 45px rgba(16,24,40,.10);--shadow2:0 10px 26px rgba(16,24,40,.08);
+  --font:'Pretendard', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --ios-blue:#007AFF;
+}
+html,body{width:100%;height:100%;font-family:var(--font);background:#f2f2f7;color:#1c1c1e;overflow:hidden}
+button,input,textarea{font-family:var(--font);-webkit-appearance:none}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input,textarea{font-size:16px!important}
+.screen{display:none;width:100vw;height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.screen.active{display:flex}
+
+/* ─── 시작 화면 ─── */
+#s-start{background:#f2f2f7;flex-direction:column}
+.start-shell{width:100%;max-width:480px;margin:0 auto;padding:20px 20px calc(30px + env(safe-area-inset-bottom))}
+
+.start-hero{
+  background:#fff;border-radius:22px;padding:28px 22px 24px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);margin-top:12px;
+}
+.start-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 11px;border-radius:999px;background:#e8f4ff;
+  color:#007AFF;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.start-badge-dot{width:6px;height:6px;border-radius:50%;background:#007AFF}
+.start-title{font-size:24px;font-weight:800;line-height:1.35;letter-spacing:-.03em;color:#1c1c1e}
+.start-sub{font-size:13.5px;line-height:1.75;color:#6e6e73;margin-top:10px}
+
+.scenario-box{
+  margin-top:18px;background:#f2f2f7;border-radius:16px;padding:15px 16px;
+  border:1px solid rgba(0,0,0,.06);
+}
+.scenario-box p{font-size:13px;line-height:1.72;color:#3c3c43}
+.scenario-box b{color:#1c1c1e}
+
+.step-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+.step-card{background:#f7f7f7;border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:12px 13px}
+.step-num{font-size:10px;font-weight:900;color:#8e8e93;letter-spacing:.07em;text-transform:uppercase}
+.step-name{font-size:13px;font-weight:700;color:#1c1c1e;margin-top:4px}
+
+.pid-section{margin-top:20px}
+.pid-label{font-size:13px;font-weight:700;color:#3c3c43;margin-bottom:8px;display:block}
+.pid-input{
+  width:100%;height:50px;padding:0 15px;
+  border:1.5px solid #d1d1d6;border-radius:14px;background:#fff;
+  color:#1c1c1e;font-size:16px;outline:none;transition:.18s;
+}
+.pid-input:focus{border-color:#007AFF;box-shadow:0 0 0 3px rgba(0,122,255,.12)}
+
+.start-btn{
+  width:100%;min-height:52px;border:0;border-radius:14px;
+  font-size:17px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:#007AFF;color:#fff;margin-top:16px;
+  box-shadow:0 6px 18px rgba(0,122,255,.3);transition:.15s;
+}
+.start-btn:active{transform:scale(.98);opacity:.9}
+.start-note{font-size:11.5px;color:#8e8e93;text-align:center;margin-top:10px;line-height:1.6}
+
+/* ─── iOS Status Bar ─── */
+.ios-statusbar{
+  height:44px;background:#fff;display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;
+  font-size:15px;font-weight:700;color:#1c1c1e;flex-shrink:0;
+  border-bottom:1px solid rgba(0,0,0,.08);
+}
+.ios-statusbar-time{font-size:15px;font-weight:700;color:#1c1c1e}
+.ios-statusbar-icons{display:flex;align-items:center;gap:6px;font-size:12px;color:#1c1c1e}
+
+/* ─── App Store 탭바 ─── */
+.ios-tabbar{
+  position:sticky;bottom:0;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(0,0,0,.1);
+  display:flex;align-items:center;
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom));flex-shrink:0;
+}
+.ios-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+.ios-tab-icon{font-size:22px;line-height:1}
+.ios-tab-label{font-size:10px;font-weight:500;color:#8e8e93}
+.ios-tab.active .ios-tab-label{color:#007AFF}
+.ios-tab.active .ios-tab-icon{filter:none}
+
+/* ─── App Store 목록 화면 ─── */
+#s-applist{background:#f2f2f7;flex-direction:column}
+.applist-header{
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  padding:12px 16px 10px;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.08);position:sticky;top:0;z-index:10;
+}
+.applist-title{font-size:28px;font-weight:800;color:#1c1c1e;letter-spacing:-.03em}
+.applist-subtitle{font-size:13px;color:#8e8e93;margin-top:2px}
+.applist-progress{
+  display:flex;align-items:center;gap:8px;margin-top:10px;
+  background:#f2f2f7;border-radius:10px;padding:8px 11px;
+}
+.applist-progress-text{font-size:12px;color:#3c3c43;font-weight:600}
+.applist-progress-bar{flex:1;height:5px;background:#e5e5ea;border-radius:999px;overflow:hidden}
+.applist-progress-fill{height:100%;background:#007AFF;border-radius:999px;transition:width .4s}
+
+.applist-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0}
+.applist-section-title{
+  font-size:11px;font-weight:700;color:#8e8e93;letter-spacing:.06em;text-transform:uppercase;
+  padding:6px 16px 4px;
+}
+
+.app-row{
+  background:#fff;display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-bottom:1px solid #f2f2f7;cursor:pointer;
+  transition:background .12s;
+}
+.app-row:active{background:#f2f2f7}
+.app-row.done{opacity:.55;pointer-events:none}
+
+.app-icon-wrap{flex-shrink:0;width:60px;height:60px;border-radius:14px;overflow:hidden;border:1px solid rgba(0,0,0,.08)}
+.app-icon-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px}
+
+.app-info{flex:1;min-width:0}
+.app-name{font-size:16px;font-weight:600;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-desc{font-size:13px;color:#8e8e93;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app-rating{font-size:11px;color:#8e8e93;margin-top:4px;display:flex;align-items:center;gap:3px}
+.app-stars{color:#ff9500}
+
+.app-get-btn{
+  flex-shrink:0;min-width:72px;height:30px;border-radius:999px;border:0;
+  background:#e8f4ff;color:#007AFF;font-size:14px;font-weight:700;cursor:pointer;
+  transition:.12s;display:flex;align-items:center;justify-content:center;padding:0 16px;
+}
+.app-get-btn:active{background:#d0e8ff}
+.app-get-btn.done-btn{background:#e5e5ea;color:#8e8e93;pointer-events:none}
+
+/* ─── 앱 상세 화면 ─── */
+#s-appdetail{background:#fff;flex-direction:column}
+.detail-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:#fff;border-bottom:1px solid rgba(0,0,0,.06);flex-shrink:0;
+}
+.detail-back{
+  display:flex;align-items:center;gap:2px;color:#007AFF;font-size:16px;font-weight:500;
+  background:none;border:0;cursor:pointer;padding:4px 0;
+}
+.detail-share{color:#007AFF;font-size:20px;background:none;border:0;cursor:pointer;padding:4px 8px}
+
+.detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+
+.detail-hero{padding:16px 16px 0}
+.detail-hero-row{display:flex;align-items:flex-start;gap:14px}
+.detail-icon{width:100px;height:100px;border-radius:22px;overflow:hidden;flex-shrink:0;border:1px solid rgba(0,0,0,.08)}
+.detail-icon-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px}
+
+.detail-meta{flex:1;padding-top:4px}
+.detail-app-name{font-size:20px;font-weight:700;color:#1c1c1e;line-height:1.25}
+.detail-dev{font-size:13px;color:#8e8e93;margin-top:3px}
+.detail-get-btn{
+  margin-top:10px;height:34px;padding:0 22px;border-radius:999px;border:0;
+  background:#007AFF;color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  transition:.12s;display:inline-flex;align-items:center;
+  box-shadow:0 4px 12px rgba(0,122,255,.3);
+}
+.detail-get-btn:active{transform:scale(.97)}
+
+.detail-stats{
+  display:flex;border-top:1px solid #f2f2f7;border-bottom:1px solid #f2f2f7;
+  margin:16px 0 0;padding:12px 0;
+}
+.detail-stat{flex:1;text-align:center;border-right:1px solid #f2f2f7}
+.detail-stat:last-child{border-right:0}
+.detail-stat-val{font-size:15px;font-weight:700;color:#1c1c1e}
+.detail-stat-sub{font-size:10px;color:#8e8e93;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+
+.detail-section{padding:16px 16px 0}
+.detail-section-title{font-size:19px;font-weight:700;color:#1c1c1e;margin-bottom:10px}
+.detail-whatsnew{font-size:13px;line-height:1.65;color:#3c3c43}
+.detail-version{font-size:12px;color:#8e8e93;margin-top:6px}
+
+.detail-preview-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;
+  scrollbar-width:none;}
+.detail-preview-row::-webkit-scrollbar{display:none}
+.detail-preview-card{
+  flex-shrink:0;width:155px;height:280px;border-radius:16px;overflow:hidden;
+  border:.5px solid rgba(0,0,0,.08);box-shadow:0 4px 16px rgba(0,0,0,.12);
+  background:#f2f2f7;
+}
+.store-preview-card{
+  flex-shrink:0;width:155px;height:280px;border-radius:16px;overflow:hidden;
+  border:.5px solid rgba(0,0,0,.08);box-shadow:0 4px 16px rgba(0,0,0,.12);
+  background:#f2f2f7;
+}
+
+.detail-divider{height:1px;background:#f2f2f7;margin:16px 0 0}
+
+/* ─── 로딩 화면 (dark) ─── */
+#s-loading{
+  background:radial-gradient(circle at 50% 35%, rgba(0,122,255,.22), transparent 40%),
+             linear-gradient(180deg,#0b1730,#071022);
+  flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;color:#fff;padding:28px;gap:0;
+}
+.loading-app-icon{
+  width:72px;height:72px;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);margin-bottom:14px;flex-shrink:0;
+}
+.loading-app-name{font-size:15px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:4px}
+.loading-status{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:20px;min-height:20px}
+#cv-main{display:block;flex-shrink:0}
+.loading-tip{margin-top:24px;font-size:12px;color:rgba(255,255,255,.25);line-height:1.6;max-width:280px}
+
+/* ─── Practice screens ─── */
+.dark-screen{
+  background:radial-gradient(circle at 50% 35%, rgba(0,122,255,.18), transparent 34%),
+              linear-gradient(180deg,#0b1730,#071022);
+  align-items:center;justify-content:center;text-align:center;color:#fff;padding:28px;
+}
+.dark-box{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.dark-kicker{font-size:12px;font-weight:900;letter-spacing:.16em;color:rgba(143,194,255,.8);text-transform:uppercase}
+.dark-title{font-size:24px;font-weight:800;line-height:1.4;letter-spacing:-.025em}
+.dark-sub{font-size:14px;color:rgba(255,255,255,.55);line-height:1.72}
+.pulse-wrap{margin-top:2px;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,122,255,.08);border:1px solid rgba(0,122,255,.18)}
+.pulse{width:8px;height:8px;border-radius:50%;background:#007AFF;animation:pulse 1.15s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.34;transform:scale(.7)}}
+
+/* ─── Survey ─── */
+#s-practice-survey,#s-survey,#s-final{background:#f2f2f7}
+.sticky-top{
+  position:sticky;top:0;background:rgba(242,242,247,.92);backdrop-filter:blur(18px);z-index:10;
+  border-bottom:1px solid rgba(0,0,0,.08);padding:12px 18px 11px;
+}
+.progress-track{height:6px;background:#e5e5ea;border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;background:#007AFF;border-radius:999px;transition:width .35s}
+.progress-text{display:flex;justify-content:space-between;font-size:11px;color:#8e8e93;margin-top:7px}
+.survey-container{width:100%;max-width:620px;margin:0 auto;padding:18px 16px 32px}
+.survey-head{padding:18px 16px;margin-bottom:14px;background:#fff;border-radius:18px;box-shadow:0 2px 8px rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.06)}
+.survey-kicker{font-size:11px;font-weight:900;letter-spacing:.14em;color:#007AFF;text-transform:uppercase}
+.survey-title{font-size:20px;font-weight:800;margin-top:8px;letter-spacing:-.02em;color:#1c1c1e}
+.survey-sub{font-size:12px;line-height:1.65;color:#8e8e93;margin-top:6px}
+.scale-guide{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.guide-item{background:#f7f7f7;border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:9px;font-size:11px;color:#3c3c43;line-height:1.5}
+.section-label{display:flex;align-items:center;gap:8px;margin:20px 2px 5px;font-size:12px;font-weight:800;color:#3c3c43;letter-spacing:.07em;text-transform:uppercase}
+.section-label:before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:#007AFF}
+.section-desc{font-size:11.5px;color:#8e8e93;margin:0 2px 9px;line-height:1.55}
+.q-card{padding:15px 14px;margin-bottom:10px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:18px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.q-text{font-size:14px;font-weight:700;line-height:1.58;color:#1c1c1e;margin-bottom:13px}
+.likert-row{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.lbtn{aspect-ratio:1;min-height:44px;border:.5px solid rgba(0,0,0,.18);border-radius:10px;background:#fff;color:#3c3c43;font-weight:700;font-size:16px;cursor:pointer;transition:.12s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;letter-spacing:-.01em}
+.lbtn.sel{background:#007AFF;border-color:#007AFF;color:#fff;box-shadow:0 4px 12px rgba(0,122,255,.28)}
+.lbtn.sel{background:#007AFF;border-color:#007AFF;color:#fff;box-shadow:0 4px 12px rgba(0,122,255,.3)}
+.likert-ends{display:flex;justify-content:space-between;font-size:11px;color:#8e8e93;margin-top:7px}
+.number-help{font-size:11px;color:#8e8e93;margin-top:7px;line-height:1.5}
+.number-input{width:100%;height:48px;padding:0 15px;border:1.5px solid #d1d1d6;border-radius:14px;background:#fff;color:#1c1c1e;font-size:16px;outline:none;transition:.18s}
+.number-input:focus{border-color:#007AFF}
+.survey-actions{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(242,242,247,0),#f2f2f7 30%);padding:18px 0 calc(14px + env(safe-area-inset-bottom))}
+.survey-btn{
+  width:100%;min-height:52px;border:0;border-radius:14px;font-size:17px;font-weight:700;
+  cursor:pointer;background:#007AFF;color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 18px rgba(0,122,255,.3);transition:.15s;
+}
+.survey-btn:active{transform:translateY(1px);opacity:.9}
+
+/* ─── Final ─── */
+.final-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:11px}
+.cond-btn{
+  padding:14px 12px;border:1.7px solid #d1d1d6;border-radius:16px;background:#fff;text-align:left;
+  cursor:pointer;overflow:hidden;transition:.15s;
+}
+.cond-btn strong{display:block;font-size:14px;color:#1c1c1e}
+.cond-btn.sel{border-color:#007AFF;background:#e8f4ff}
+.preview-wrap{
+  margin-top:11px;height:76px;border-radius:12px;
+  background:linear-gradient(180deg,#f7f9ff,#fff);border:1px solid #e5effc;
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.preview-wrap canvas{width:66px;height:66px}
+.preview-label{position:absolute;left:10px;bottom:7px;font-size:10px;color:#8e8e93;font-weight:600}
+.preview-time{position:absolute;right:10px;bottom:7px;font-size:10px;color:#8e8e93;font-weight:600}
+textarea{width:100%;min-height:98px;padding:13px;border:1.5px solid #d1d1d6;border-radius:16px;font-size:14px;line-height:1.65;resize:vertical;outline:none;background:#fff}
+
+/* ─── Done ─── */
+.done-screen-bg{
+  background:radial-gradient(circle at 50% 35%, rgba(0,122,255,.18), transparent 34%),
+              linear-gradient(180deg,#0b1730,#071022);
+  align-items:center;justify-content:center;
+}
+.done-panel{width:100%;max-width:460px;padding:26px 22px;text-align:center}
+.done-glass{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:28px 22px}
+.done-icon{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,122,255,.18);border:2px solid rgba(0,122,255,.4);font-size:36px;margin:0 auto}
+.done-title{font-size:24px;font-weight:800;color:#fff;margin-top:14px}
+.done-sub{font-size:14px;line-height:1.75;color:rgba(255,255,255,.58);margin-top:8px}
+.done-pid{font-size:12px;color:rgba(255,255,255,.32);font-family:monospace;margin-top:6px}
+.done-btn{
+  width:100%;min-height:50px;border-radius:14px;border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);
+  font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.done-btn:active{opacity:.7}
+.done-btn.primary-done{background:#007AFF;border-color:#007AFF;color:#fff;box-shadow:0 6px 18px rgba(0,122,255,.3)}
+.data-note{margin-top:12px;padding:11px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:12px;color:rgba(255,255,255,.5);line-height:1.6}
+canvas{display:block}
+
+/* ─── 앱 아이콘 SVG 크기 ─── */
+.app-icon-img svg,.detail-icon-img svg,.store-loading-icon-inner svg,.photo-app-icon svg{
+  width:60%;height:60%;display:block;margin:auto;
+}
+.app-icon-img,.detail-icon-img,.store-loading-icon-inner,.photo-app-icon{
+  display:flex;align-items:center;justify-content:center;
+}
+.app-icon-wrap{
+  flex-shrink:0;width:64px;height:64px;border-radius:15px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.08);
+}
+.app-name{font-size:16px;font-weight:600;color:#1c1c1e;letter-spacing:-.01em}
+.app-desc{font-size:13px;color:#8e8e93;margin-top:1px}
+.detail-icon{
+  width:108px;height:108px;border-radius:24px;overflow:hidden;flex-shrink:0;
+  box-shadow:0 3px 14px rgba(0,0,0,.14),0 0 0 .5px rgba(0,0,0,.08);
+}
+.store-loading-icon{
+  width:126px;height:126px;border-radius:28px;overflow:hidden;flex-shrink:0;
+  box-shadow:0 6px 20px rgba(0,0,0,.15),0 0 0 .5px rgba(0,0,0,.08);
+}
+.q-card{padding:16px 16px 14px;margin-bottom:8px;background:#fff;border-radius:16px;border:.5px solid rgba(0,0,0,.08);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.q-text{font-size:15px;font-weight:600;line-height:1.55;color:#1c1c1e;margin-bottom:14px;letter-spacing:-.01em}
+.section-label{display:flex;align-items:center;gap:7px;margin:22px 2px 6px;font-size:11px;font-weight:700;color:#8e8e93;letter-spacing:.06em;text-transform:uppercase}
+.section-label:before{content:"";display:block;width:6px;height:6px;border-radius:50%;background:#007AFF}
+.likert-ends{display:flex;justify-content:space-between;font-size:11px;color:#8e8e93;margin-top:8px;font-weight:500}
+
+/* replay modal */
+#replay-modal{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(circle at 50% 35%, rgba(0,122,255,.18), transparent 34%),
+             linear-gradient(180deg,#0b1730,#071022);
+  flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  color:#fff;text-align:center;padding:28px;
+}
+#replay-modal.open{display:flex}
+.replay-kicker{font-size:11px;font-weight:900;letter-spacing:.16em;color:rgba(143,194,255,.8);text-transform:uppercase}
+.replay-title{font-size:20px;font-weight:800;letter-spacing:-.025em}
+.replay-sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:-4px}
+.replay-close-btn{
+  margin-top:6px;padding:13px 32px;border:1.5px solid rgba(255,255,255,.18);
+  border-radius:16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);
+  font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font);transition:.15s;
+}
+.replay-btn{
+  margin-top:8px;padding:9px 18px;border:1.5px solid rgba(0,122,255,.4);
+  border-radius:12px;background:rgba(0,122,255,.1);color:rgba(143,194,255,.9);
+  font-size:12px;font-weight:800;cursor:pointer;font-family:var(--font);
+  transition:.15s;display:inline-flex;align-items:center;gap:6px;
+}
+
+@media(min-width:700px){
+  body{background:linear-gradient(135deg,#eef5ff,#f7f8fb 46%,#eef4fb)}
+  .start-shell{padding-top:40px}
+}
+
+/* =========================================================
+   APP STORE EXPERIENCE UPGRADE
+   하단 탭바 클릭 가능 + 앱 상세 다운로드 로딩을 App Store 스타일로 개선
+========================================================= */
+
+/* 하단 탭바 고급화 */
+.ios-tabbar{
+  position:sticky !important;
+  bottom:0 !important;
+  z-index:50 !important;
+  background:rgba(255,255,255,.86) !important;
+  backdrop-filter:blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter:blur(24px) saturate(180%) !important;
+  border-top:1px solid rgba(60,60,67,.18) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-around !important;
+  min-height:74px !important;
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom)) !important;
+  box-shadow:0 -8px 28px rgba(0,0,0,.08) !important;
+}
+
+.ios-tab{
+  flex:1 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:4px !important;
+  border:0 !important;
+  background:transparent !important;
+  cursor:pointer !important;
+  border-radius:16px !important;
+  min-height:52px !important;
+  transition:.16s !important;
+  -webkit-tap-highlight-color:transparent !important;
+}
+
+.ios-tab:active{
+  transform:scale(.94) !important;
+  background:rgba(0,122,255,.08) !important;
+}
+
+.ios-tab-icon{
+  font-size:25px !important;
+  line-height:1 !important;
+  filter:saturate(.85) !important;
+}
+
+.ios-tab-label{
+  font-size:11px !important;
+  line-height:1 !important;
+  font-weight:700 !important;
+  color:#8e8e93 !important;
+}
+
+.ios-tab.active .ios-tab-label{
+  color:#007AFF !important;
+}
+
+.ios-tab.active .ios-tab-icon{
+  filter:none !important;
+}
+
+/* 탭 콘텐츠 화면 */
+.tab-content-panel{
+  padding:20px 16px 120px;
+  min-height:100%;
+  background:#f2f2f7;
+}
+
+.tab-hero-card{
+  background:#fff;
+  border-radius:22px;
+  padding:22px 18px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+  border:1px solid rgba(0,0,0,.05);
+}
+
+.tab-hero-title{
+  font-size:25px;
+  line-height:1.32;
+  font-weight:900;
+  letter-spacing:-.04em;
+  color:#1c1c1e;
+}
+
+.tab-hero-sub{
+  margin-top:8px;
+  font-size:14px;
+  line-height:1.7;
+  color:#6e6e73;
+}
+
+.tab-card-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:16px;
+}
+
+.tab-small-card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px 14px;
+  border:1px solid rgba(0,0,0,.05);
+  box-shadow:0 1px 8px rgba(0,0,0,.04);
+}
+
+.tab-small-icon{
+  font-size:28px;
+  margin-bottom:8px;
+}
+
+.tab-small-title{
+  font-size:14px;
+  font-weight:800;
+  color:#1c1c1e;
+}
+
+.tab-small-desc{
+  margin-top:4px;
+  font-size:12px;
+  line-height:1.5;
+  color:#8e8e93;
+}
+
+/* 앱 상세 화면을 사용자가 보낸 이미지처럼 */
+.detail-hero{
+  padding:22px 16px 0 !important;
+}
+
+.detail-hero-row{
+  align-items:center !important;
+  gap:18px !important;
+}
+
+.detail-icon{
+  width:118px !important;
+  height:118px !important;
+  border-radius:28px !important;
+  box-shadow:0 4px 18px rgba(0,0,0,.10) !important;
+}
+
+.detail-app-name{
+  font-size:28px !important;
+  font-weight:900 !important;
+  letter-spacing:-.04em !important;
+}
+
+.detail-dev{
+  font-size:15px !important;
+  line-height:1.4 !important;
+  color:#8e8e93 !important;
+}
+
+/* 상세 화면 안 원형 다운로드 로딩 */
+.store-inline-loader-wrap{
+  margin-top:22px;
+  height:42px;
+  display:flex;
+  align-items:center;
+}
+
+.store-inline-loader{
+  width:42px;
+  height:42px;
+  position:relative;
+}
+
+.store-inline-loader svg{
+  width:42px;
+  height:42px;
+  transform:rotate(-90deg);
+}
+
+.store-inline-loader .track{
+  fill:none;
+  stroke:#e5e5ea;
+  stroke-width:4.4;
+}
+
+.store-inline-loader .progress{
+  fill:none;
+  stroke:#d1d1d6;
+  stroke-width:4.4;
+  stroke-linecap:round;
+  stroke-dasharray:113;
+  stroke-dashoffset:113;
+  animation:storeCircle 15s linear forwards;
+}
+
+@keyframes storeCircle{
+  from{stroke-dashoffset:113}
+  to{stroke-dashoffset:0}
+}
+
+.store-inline-status{
+  margin-left:12px;
+  font-size:13px;
+  color:#8e8e93;
+  font-weight:700;
+}
+
+/* 다운로드 중일 때 상세 화면의 받기 버튼 숨김 */
+.detail-get-btn.downloading{
+  opacity:0;
+  pointer-events:none;
+}
+
+/* 다운로드 전용 화면은 App Store 상세와 유사한 흰 화면 */
+#s-loading{
+  background:#fff !important;
+  color:#1c1c1e !important;
+  justify-content:flex-start !important;
+  align-items:stretch !important;
+  padding:0 !important;
+  text-align:left !important;
+  overflow-y:auto !important;
+}
+
+.store-loading-page{
+  width:100%;
+  min-height:100dvh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.store-loading-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 18px;
+  background:#fff;
+}
+
+.store-nav-circle{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 10px 28px rgba(0,0,0,.10);
+  border:1px solid rgba(0,0,0,.04);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  color:#111;
+}
+
+.store-loading-hero{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:24px 22px 20px;
+}
+
+.store-loading-icon{
+  width:122px;
+  height:122px;
+  border-radius:28px;
+  overflow:hidden;
+  border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 4px 18px rgba(0,0,0,.10);
+  flex-shrink:0;
+}
+
+.store-loading-icon-inner{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:58px;
+}
+
+.store-loading-info{
+  flex:1;
+  min-width:0;
+}
+
+.store-loading-name{
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  color:#111;
+}
+
+.store-loading-sub{
+  margin-top:4px;
+  font-size:15px;
+  line-height:1.45;
+  color:#8e8e93;
+}
+
+.store-loader-line{
+  margin-top:28px;
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+
+.store-large-circle{
+  width:46px;
+  height:46px;
+}
+
+.store-large-circle svg{
+  width:46px;
+  height:46px;
+  transform:rotate(-90deg);
+}
+
+.store-large-circle .track{
+  fill:none;
+  stroke:#e5e5ea;
+  stroke-width:4.5;
+}
+
+.store-large-circle .progress{
+  fill:none;
+  stroke:#d1d1d6;
+  stroke-width:4.5;
+  stroke-linecap:round;
+  stroke-dasharray:126;
+  stroke-dashoffset:126;
+  animation:storeCircleLarge 15s linear forwards;
+}
+
+@keyframes storeCircleLarge{
+  from{stroke-dashoffset:126}
+  to{stroke-dashoffset:0}
+}
+
+.store-loading-state{
+  font-size:14px;
+  color:#8e8e93;
+  font-weight:800;
+}
+
+.store-stats{
+  display:flex;
+  margin:22px 18px 0;
+  padding:16px 0;
+  border-top:1px solid #f2f2f7;
+  border-bottom:1px solid #f2f2f7;
+}
+
+.store-stat{
+  flex:1;
+  text-align:center;
+  border-right:1px solid #f2f2f7;
+}
+
+.store-stat:last-child{
+  border-right:0;
+}
+
+.store-stat-top{
+  font-size:13px;
+  color:#8e8e93;
+  font-weight:800;
+}
+
+.store-stat-val{
+  margin-top:8px;
+  font-size:27px;
+  color:#8e8e93;
+  font-weight:900;
+}
+
+.store-stat-sub{
+  margin-top:4px;
+  font-size:12px;
+  color:#8e8e93;
+}
+
+.store-news{
+  padding:26px 22px 0;
+}
+
+.store-section-title{
+  font-size:27px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  color:#111;
+}
+
+.store-news-meta{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  color:#8e8e93;
+  font-size:14px;
+}
+
+.store-news-text{
+  margin-top:18px;
+  font-size:15px;
+  color:#111;
+  line-height:1.6;
+}
+
+.store-preview{
+  padding:28px 22px 40px;
+}
+
+.store-preview-row{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+
+.store-preview-row::-webkit-scrollbar{
+  display:none;
+}
+
+.store-preview-card{
+  flex:0 0 210px;
+  height:360px;
+  border-radius:26px;
+  overflow:hidden;
+  border:1px solid rgba(0,0,0,.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:24px;
+  font-weight:900;
+  text-align:center;
+  line-height:1.3;
+  padding:18px;
+}
+
+@media(max-width:430px){
+  .store-loading-icon{
+    width:112px;
+    height:112px;
+    border-radius:26px;
+  }
+  .store-loading-hero{
+    gap:18px;
+    padding:22px 18px 18px;
+  }
+  .store-loading-name{
+    font-size:26px;
+  }
+  .store-loading-sub{
+    font-size:14px;
+  }
+  .store-preview-card{
+    flex-basis:190px;
+    height:330px;
+  }
+}
+
+@media(max-width:370px){
+  .store-loading-icon{
+    width:96px;
+    height:96px;
+  }
+  .store-loading-name{
+    font-size:23px;
+  }
+  .store-nav-circle{
+    width:46px;
+    height:46px;
+  }
+}
+
+
+/* =========================================================
+   SEARCH FLOW + PRACTICE APP STORE LOADING UPGRADE
+========================================================= */
+
+.search-panel{
+  padding:18px 16px 120px;
+  background:#f2f2f7;
+  min-height:100%;
+}
+
+.search-title{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  color:#1c1c1e;
+  margin-bottom:14px;
+}
+
+.search-box{
+  height:44px;
+  border-radius:13px;
+  background:#e5e5ea;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 13px;
+  color:#8e8e93;
+  font-size:15px;
+  font-weight:600;
+  margin-bottom:14px;
+}
+
+.search-box input{
+  flex:1;
+  border:0;
+  outline:0;
+  background:transparent;
+  font-size:16px!important;
+  color:#1c1c1e;
+  font-weight:600;
+}
+
+.search-hint{
+  background:#fff;
+  border-radius:18px;
+  padding:16px 15px;
+  box-shadow:0 1px 8px rgba(0,0,0,.04);
+  border:1px solid rgba(0,0,0,.05);
+  margin-bottom:14px;
+}
+
+.search-hint-title{
+  font-size:15px;
+  font-weight:900;
+  color:#1c1c1e;
+}
+
+.search-hint-text{
+  margin-top:5px;
+  font-size:13px;
+  line-height:1.65;
+  color:#6e6e73;
+}
+
+.search-result-title{
+  font-size:12px;
+  font-weight:900;
+  color:#8e8e93;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:6px 2px 8px;
+}
+
+.search-result-list{
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid rgba(0,0,0,.05);
+  box-shadow:0 1px 8px rgba(0,0,0,.04);
+}
+
+.search-empty{
+  padding:24px 14px;
+  text-align:center;
+  color:#8e8e93;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.search-keyword-chip-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.search-chip{
+  border:0;
+  background:#e8f4ff;
+  color:#007AFF;
+  padding:8px 12px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:12px;
+  cursor:pointer;
+}
+
+/* 연습용 App Store 로딩 */
+#s-practice-loading{
+  background:#fff !important;
+  color:#1c1c1e !important;
+  justify-content:flex-start !important;
+  align-items:stretch !important;
+  padding:0 !important;
+  text-align:left !important;
+  overflow-y:auto !important;
+}
+
+.practice-store-page{
+  width:100%;
+  min-height:100dvh;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.practice-store-hero{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:34px 22px 20px;
+}
+
+.practice-store-icon{
+  width:118px;
+  height:118px;
+  border-radius:28px;
+  overflow:hidden;
+  border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 4px 18px rgba(0,0,0,.10);
+  flex-shrink:0;
+}
+
+.practice-store-icon-inner{
+  width:100%;
+  height:100%;
+  background:linear-gradient(135deg,#ff7a00,#ffae42);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:56px;
+}
+
+.practice-store-info{
+  flex:1;
+  min-width:0;
+}
+
+.practice-store-name{
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  color:#111;
+}
+
+.practice-store-sub{
+  margin-top:4px;
+  font-size:15px;
+  line-height:1.45;
+  color:#8e8e93;
+}
+
+.practice-loader-line{
+  margin-top:28px;
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+
+.practice-store-state{
+  font-size:14px;
+  color:#8e8e93;
+  font-weight:800;
+}
+
+.practice-store-stats{
+  display:flex;
+  margin:22px 18px 0;
+  padding:16px 0;
+  border-top:1px solid #f2f2f7;
+  border-bottom:1px solid #f2f2f7;
+}
+
+.practice-store-stat{
+  flex:1;
+  text-align:center;
+  border-right:1px solid #f2f2f7;
+}
+
+.practice-store-stat:last-child{
+  border-right:0;
+}
+
+.practice-store-stat-top{
+  font-size:13px;
+  color:#8e8e93;
+  font-weight:800;
+}
+
+.practice-store-stat-val{
+  margin-top:8px;
+  font-size:27px;
+  color:#8e8e93;
+  font-weight:900;
+}
+
+.practice-store-section{
+  padding:28px 22px 40px;
+}
+
+.practice-store-section-title{
+  font-size:27px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  color:#111;
+}
+
+.practice-preview-row{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  margin-top:14px;
+  scrollbar-width:none;
+}
+
+.practice-preview-row::-webkit-scrollbar{
+  display:none;
+}
+
+.practice-preview-card{
+  flex:0 0 210px;
+  height:330px;
+  border-radius:26px;
+  background:linear-gradient(160deg,#b7e5ff,#eef9ff);
+  border:1px solid rgba(0,0,0,.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#f97316;
+  font-size:24px;
+  font-weight:900;
+  text-align:center;
+  line-height:1.3;
+  padding:18px;
+}
+
+/* App Store 상세 로딩 화면을 더 사진처럼 */
+.store-loading-nav{
+  padding:22px 28px 8px !important;
+}
+
+.store-loading-hero{
+  padding-top:30px !important;
+}
+
+.store-large-circle .progress,
+.store-inline-loader .progress{
+  stroke:#d9d9df !important;
+}
+
+.store-large-circle .track,
+.store-inline-loader .track{
+  stroke:#eeeeF2 !important;
+}
+
+@media(max-width:430px){
+  .search-title{
+    font-size:28px;
+  }
+  .practice-store-hero{
+    padding:30px 18px 18px;
+    gap:18px;
+  }
+  .practice-store-icon{
+    width:110px;
+    height:110px;
+  }
+  .practice-store-name{
+    font-size:26px;
+  }
+}
+
+
+/* =========================================================
+   FINAL APP STORE SEARCH-DOWNLOAD FLOW
+   - 탭을 눌러도 막히지 않음
+   - 매 시행마다 지정 검색어 입력 → 앱 찾기 → 받기 → 다운로드 로딩 → 설문
+   - App Store 원형 로딩 색상 #007AFF 적용
+========================================================= */
+
+.store-large-circle .progress,
+.store-inline-loader .progress{
+  stroke:#007AFF !important;
+}
+.store-large-circle .track,
+.store-inline-loader .track{
+  stroke:#e5e5ea !important;
+}
+
+/* 탭 화면 공통 */
+.store-real-panel{
+  padding:20px 16px 120px;
+  background:#f2f2f7;
+  min-height:100%;
+}
+.store-real-title{
+  font-size:31px;
+  font-weight:900;
+  letter-spacing:-.045em;
+  color:#1c1c1e;
+}
+.store-real-sub{
+  margin-top:6px;
+  font-size:14px;
+  color:#8e8e93;
+  line-height:1.6;
+}
+.store-real-card{
+  margin-top:16px;
+  background:#fff;
+  border-radius:22px;
+  padding:18px 16px;
+  border:1px solid rgba(0,0,0,.05);
+  box-shadow:0 2px 12px rgba(0,0,0,.05);
+}
+.store-real-card-title{
+  font-size:18px;
+  font-weight:900;
+  color:#1c1c1e;
+}
+.store-real-card-text{
+  margin-top:7px;
+  font-size:13px;
+  line-height:1.7;
+  color:#6e6e73;
+}
+.store-real-primary{
+  width:100%;
+  margin-top:14px;
+  height:48px;
+  border:0;
+  border-radius:14px;
+  background:#007AFF;
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+/* 검색 화면 */
+.search-panel.final-search{
+  padding:18px 16px 120px;
+}
+.search-guide-card{
+  background:#fff;
+  border-radius:22px;
+  padding:18px 16px;
+  border:1px solid rgba(0,0,0,.05);
+  box-shadow:0 2px 12px rgba(0,0,0,.05);
+  margin-bottom:14px;
+}
+.search-progress-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 11px;
+  border-radius:999px;
+  background:#e8f4ff;
+  color:#007AFF;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.search-progress-pill:before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#007AFF;
+}
+.search-target-title{
+  margin-top:12px;
+  font-size:22px;
+  line-height:1.35;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#1c1c1e;
+}
+.search-target-word{
+  display:inline-block;
+  margin-top:10px;
+  padding:9px 14px;
+  border-radius:14px;
+  background:#f2f2f7;
+  color:#1c1c1e;
+  font-size:18px;
+  font-weight:900;
+}
+.search-target-desc{
+  margin-top:10px;
+  font-size:13px;
+  line-height:1.65;
+  color:#6e6e73;
+}
+.search-box.final-search-box{
+  height:48px;
+  background:#e5e5ea;
+  border-radius:14px;
+  margin-bottom:14px;
+}
+.search-box.final-search-box input{
+  font-size:17px!important;
+}
+.search-result-list.final-results{
+  border-radius:22px;
+}
+.search-result-list.final-results .app-row{
+  min-height:92px;
+}
+.app-get-btn.result-get{
+  background:#007AFF;
+  color:#fff;
+}
+.search-empty.strong{
+  background:#fff;
+  border-radius:22px;
+  padding:26px 16px;
+  color:#8e8e93;
+}
+.search-empty.strong b{
+  color:#1c1c1e;
+}
+
+/* 앱 상세 화면을 더 실제 앱처럼 */
+.detail-nav{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(255,255,255,.92)!important;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.detail-back{
+  font-size:18px!important;
+  color:#007AFF!important;
+}
+.detail-share{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#f2f2f7!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#007AFF!important;
+}
+.detail-get-btn{
+  min-width:78px!important;
+  justify-content:center!important;
+}
+
+/* App Store loading page polish */
+.store-loading-page{
+  padding-bottom:40px;
+}
+.store-loading-state{
+  color:#007AFF!important;
+}
+.store-news-text{
+  color:#1c1c1e!important;
+}
+
+/* 하단 탭이 늘 살아있게 */
+.ios-tabbar{
+  user-select:none;
+}
+.ios-tab.disabled{
+  opacity:.65;
+}
+
+</style>
+
+<style id="photo-final-style">
+.applist-header,.ios-statusbar{display:none!important}
+.applist-scroll{padding:0!important;background:#fff!important}
+.store-photo-page,.search-photo-page{min-height:100%;background:#fff;padding:28px 22px 118px;overflow:hidden}
+.store-photo-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.store-photo-title,.search-photo-title{font-size:42px;line-height:1;font-weight:900;letter-spacing:-.06em;color:#000}
+.store-user-badge{width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,#b8c9e9,#6e79b5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900}
+.ios-tabbar{position:fixed!important;left:50%!important;transform:translateX(-50%)!important;bottom:18px!important;width:min(90vw,620px)!important;min-height:74px!important;border-radius:40px!important;background:rgba(255,255,255,.74)!important;backdrop-filter:blur(24px) saturate(180%)!important;-webkit-backdrop-filter:blur(24px) saturate(180%)!important;border:1px solid rgba(210,210,215,.65)!important;box-shadow:0 12px 32px rgba(0,0,0,.16)!important;padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important}
+.ios-tab{min-height:58px!important;border-radius:32px!important}.ios-tab.active{background:rgba(210,210,215,.45)!important}.ios-tab-icon{font-size:29px!important}.ios-tab-label{font-size:12px!important;font-weight:800!important;color:#111!important}.ios-tab.active .ios-tab-label{color:#007AFF!important}
+.today-hero-card{position:relative;border-radius:28px;overflow:hidden;height:520px;background:linear-gradient(160deg,#35476c,#b8a5d8);box-shadow:0 10px 28px rgba(0,0,0,.12);margin-bottom:22px}
+.today-hero-art{position:absolute;inset:0;background:radial-gradient(circle at 35% 28%,#f8f6ee 0 10%,transparent 11%),radial-gradient(circle at 55% 35%,#fedb73 0 8%,transparent 9%),radial-gradient(circle at 70% 22%,#f1cff7 0 22%,transparent 23%),linear-gradient(160deg,#273c65,#d9c2e4)}
+.today-hero-overlay{position:absolute;inset:auto 0 0 0;height:210px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.58))}
+.today-hero-copy{position:absolute;left:24px;right:24px;bottom:118px;color:#fff}.today-kicker{font-size:16px;font-weight:800}.today-main{margin-top:8px;font-size:34px;line-height:1.18;font-weight:900;letter-spacing:-.04em}.today-sub{margin-top:10px;font-size:17px;line-height:1.4;font-weight:700}
+.today-download-row{position:absolute;left:0;right:0;bottom:0;height:104px;display:flex;align-items:center;gap:14px;padding:16px 22px;background:rgba(40,35,30,.54)}
+.today-mini-icon{width:58px;height:58px;border-radius:14px;background:linear-gradient(135deg,#ffd27a,#ff9d3d);display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0}.today-mini-info{flex:1;min-width:0;color:#fff}.today-mini-name{font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.today-mini-desc{font-size:13px;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.photo-get{border:0;min-width:108px;height:54px;border-radius:999px;background:rgba(240,240,242,.75);color:#fff;font-size:20px;font-weight:900}
+.chip-row{display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:18px}.chip-row::-webkit-scrollbar{display:none}.game-chip{flex:0 0 auto;border:0;height:54px;padding:0 24px;border-radius:999px;background:#fff;box-shadow:0 7px 24px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;color:#111}
+.photo-section-kicker{font-size:15px;color:#007AFF;font-weight:900;margin-top:8px}.photo-section-title{margin-top:5px;font-size:31px;line-height:1.2;font-weight:900;letter-spacing:-.05em;color:#000}.photo-section-sub{margin-top:3px;font-size:22px;color:#8e8e93;font-weight:800;letter-spacing:-.04em}
+.game-feature-card{position:relative;height:360px;border-radius:28px;overflow:hidden;margin-top:20px;background:linear-gradient(150deg,#536b96,#d6c0ef);box-shadow:0 8px 24px rgba(0,0,0,.10)}.game-feature-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 35% 30%,#f5f1e8 0 16%,transparent 17%),radial-gradient(circle at 65% 40%,#fedb73 0 9%,transparent 10%),linear-gradient(160deg,#35476c,#bfa5db)}.game-feature-bottom{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:14px;padding:16px 20px;height:96px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));color:#fff}
+.app-list-section{margin-top:34px}.app-list-title{display:flex;align-items:center;gap:8px;font-size:31px;line-height:1.1;font-weight:900;letter-spacing:-.05em;color:#000}.photo-app-row{display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid #efeff4}.photo-app-icon{width:66px;height:66px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:34px}.photo-app-info{flex:1;min-width:0}.photo-app-name{font-size:22px;font-weight:800;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.03em}.photo-app-desc{font-size:15px;color:#8e8e93;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.photo-download-btn{border:0;min-width:94px;height:46px;border-radius:999px;background:#f2f2f7;color:#007AFF;font-size:18px;font-weight:900}
+.app-big-feature{height:315px;border-radius:28px;overflow:hidden;margin-top:18px;background:linear-gradient(160deg,#6b1d68,#b0215b);display:flex;align-items:center;justify-content:center;color:#fff;font-size:36px;font-weight:900;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.10)}.photo-ad-badge{display:inline-flex;background:#8bbff4;color:#fff;font-size:13px;font-weight:900;border-radius:6px;padding:3px 7px;margin-top:5px}
+.real-search-field{width:100%;height:54px;border-radius:16px;background:#e5e5ea;display:flex;align-items:center;gap:10px;padding:0 15px;margin-bottom:16px}.real-search-field input{flex:1;border:0;outline:0;background:transparent;font-size:18px!important;color:#111;font-weight:700}.search-photo-list-title{margin-top:28px;font-size:31px;font-weight:900;letter-spacing:-.05em;color:#000}.search-photo-ranking{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.search-rank-card{height:118px;border-radius:18px;padding:18px;display:flex;align-items:flex-end;color:#fff;font-size:21px;line-height:1.2;font-weight:900}
+.fake-keyboard{position:fixed;left:0;right:0;bottom:0;height:310px;background:rgba(245,245,247,.82);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:1px solid rgba(0,0,0,.08);z-index:90;padding:12px 10px calc(8px + env(safe-area-inset-bottom))}.fake-search-input{height:56px;border-radius:28px;background:rgba(255,255,255,.65);display:flex;align-items:center;gap:12px;padding:0 18px;font-size:20px;color:#333;margin-bottom:12px}.fake-key-row{display:flex;gap:8px;justify-content:center;margin-bottom:10px}.fake-key{width:46px;height:48px;border-radius:10px;background:rgba(255,255,255,.82);box-shadow:0 2px 5px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:22px}.fake-bottom-row{display:flex;align-items:center;gap:10px;margin-top:8px}.fake-space{flex:1;height:45px;border-radius:12px;background:rgba(255,255,255,.82)}.fake-search-button{width:100px;height:45px;border-radius:12px;border:0;background:#007AFF;color:#fff;font-size:17px;font-weight:900}
+.store-large-circle .progress,.store-inline-loader .progress{stroke:#007AFF!important}.store-large-circle .track,.store-inline-loader .track{stroke:#e5e5ea!important}.store-loading-state{color:#8e8e93!important}
+.start-sub,.scenario-box,.step-row{display:none!important}.start-title{font-size:30px!important;line-height:1.25!important}.start-hero{margin-top:40px!important}
+</style>
+
+
+<style id="loading-ui-slot-fix">
+/* 설치 중 텍스트 제거 + 그 위치에 8개 로딩 UI 표시 */
+#store-loading-state{
+  display:none !important;
+}
+
+.store-loader-line{
+  margin-top:24px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:0 !important;
+  min-height:62px !important;
+}
+
+.store-large-circle{
+  display:none !important;
+}
+
+#cv-main{
+  display:block !important;
+  width:58px !important;
+  height:58px !important;
+  flex:0 0 58px !important;
+}
+
+/* App Store 상세 화면 안에서 로딩 UI가 자연스럽게 보이도록 */
+.store-loading-info .store-loader-line{
+  padding-left:0 !important;
+}
+</style>
+
+
+<style id="practice-loading-ratio-final-fix">
+/* 원래 로딩 UI 비율 유지 + 설치 중 텍스트 제거 */
+#store-loading-state,
+.practice-store-state{
+  display:none !important;
+}
+
+.store-loader-line,
+.practice-loader-line{
+  margin-top:24px !important;
+  min-height:82px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:0 !important;
+}
+
+.store-large-circle,
+.practice-loader-line .store-large-circle{
+  display:none !important;
+}
+
+#cv-main,
+#cv-practice{
+  display:block !important;
+  width:82px !important;
+  height:82px !important;
+  flex:0 0 82px !important;
+}
+
+/* 연습 화면에서도 앱스토어 로딩 위치에 들어가도록 */
+.practice-store-info .practice-loader-line{
+  padding-left:0 !important;
+}
+</style>
+
+
+<style id="iphone15pro-final-css">
+/* =========================================================
+   iPhone 15 Pro Optimization
+   기준: 393px × 852px, Dynamic Island/하단 safe-area 고려
+========================================================= */
+
+:root{
+  --iphone-w:393px;
+  --iphone-radius:34px;
+}
+
+/* 실제 폰에서는 전체 화면, PC에서는 iPhone 15 Pro 폭처럼 중앙 정렬 */
+html,body{
+  width:100%;
+  min-height:100%;
+  background:#f2f2f7 !important;
+}
+
+@media (min-width:700px){
+  body{
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+    background:#dfe5ee !important;
+  }
+
+  body::before{
+    content:"iPhone 15 Pro Preview";
+    position:fixed;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:12px;
+    color:#667085;
+    font-weight:700;
+  }
+
+  .screen{
+    max-width:393px !important;
+    height:852px !important;
+    max-height:852px !important;
+    margin:34px auto !important;
+    border-radius:34px !important;
+    overflow:hidden !important;
+    box-shadow:0 24px 70px rgba(15,23,42,.24) !important;
+    border:1px solid rgba(255,255,255,.75) !important;
+  }
+}
+
+/* iPhone 15 Pro 실제 화면 기준 */
+.screen{
+  width:100vw;
+  height:100dvh;
+  max-width:100vw;
+}
+
+/* 상단 여백: Dynamic Island 느낌 */
+.store-photo-page,
+.search-photo-page{
+  padding-top:calc(28px + env(safe-area-inset-top)) !important;
+  padding-left:20px !important;
+  padding-right:20px !important;
+  padding-bottom:calc(116px + env(safe-area-inset-bottom)) !important;
+}
+
+/* 제목 크기 조정 */
+.store-photo-title,
+.search-photo-title{
+  font-size:40px !important;
+  letter-spacing:-.055em !important;
+}
+
+.store-user-badge{
+  width:58px !important;
+  height:58px !important;
+  font-size:21px !important;
+}
+
+/* 하단 탭바 iPhone 15 Pro safe-area 최적화 */
+.ios-tabbar{
+  bottom:calc(12px + env(safe-area-inset-bottom)) !important;
+  width:calc(100vw - 28px) !important;
+  max-width:365px !important;
+  min-height:70px !important;
+  padding:6px 8px 6px !important;
+  border-radius:36px !important;
+}
+
+@media (min-width:700px){
+  .ios-tabbar{
+    width:365px !important;
+    left:50% !important;
+    bottom:calc(46px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+.ios-tab{
+  min-height:56px !important;
+}
+
+.ios-tab-icon{
+  font-size:27px !important;
+}
+
+.ios-tab-label{
+  font-size:11.5px !important;
+}
+
+/* 투데이 화면 카드 */
+.today-hero-card{
+  height:485px !important;
+  border-radius:26px !important;
+}
+
+.today-hero-copy{
+  bottom:112px !important;
+  left:22px !important;
+  right:22px !important;
+}
+
+.today-main{
+  font-size:31px !important;
+}
+
+.today-sub{
+  font-size:16px !important;
+}
+
+.today-download-row{
+  height:98px !important;
+  padding:15px 20px !important;
+}
+
+.photo-get{
+  min-width:96px !important;
+  height:50px !important;
+  font-size:18px !important;
+}
+
+/* 게임/앱 카드 */
+.game-feature-card{
+  height:315px !important;
+  border-radius:26px !important;
+}
+
+.app-big-feature{
+  height:292px !important;
+  border-radius:26px !important;
+}
+
+.photo-section-title{
+  font-size:28px !important;
+}
+
+.photo-section-sub{
+  font-size:20px !important;
+}
+
+.app-list-title{
+  font-size:29px !important;
+}
+
+.photo-app-icon{
+  width:62px !important;
+  height:62px !important;
+  border-radius:15px !important;
+}
+
+.photo-app-name{
+  font-size:20px !important;
+}
+
+.photo-app-desc{
+  font-size:14px !important;
+}
+
+.photo-download-btn{
+  min-width:86px !important;
+  height:43px !important;
+  font-size:17px !important;
+}
+
+/* 검색 화면 + 키보드 */
+.search-photo-page{
+  padding-bottom:calc(360px + env(safe-area-inset-bottom)) !important;
+}
+
+.real-search-field{
+  height:52px !important;
+  border-radius:15px !important;
+}
+
+.fake-keyboard{
+  height:300px !important;
+  padding:10px 8px calc(8px + env(safe-area-inset-bottom)) !important;
+}
+
+@media (min-width:700px){
+  .fake-keyboard{
+    left:50% !important;
+    transform:translateX(-50%) !important;
+    width:393px !important;
+    bottom:34px !important;
+    border-bottom-left-radius:34px !important;
+    border-bottom-right-radius:34px !important;
+    overflow:hidden !important;
+  }
+}
+
+.fake-search-input{
+  height:52px !important;
+  font-size:19px !important;
+}
+
+.fake-key{
+  width:40px !important;
+  height:44px !important;
+  border-radius:9px !important;
+  font-size:20px !important;
+}
+
+.fake-key-row{
+  gap:6px !important;
+  margin-bottom:9px !important;
+}
+
+.fake-search-button{
+  width:92px !important;
+  height:43px !important;
+}
+
+/* 앱 상세/다운로드 화면 */
+.detail-hero{
+  padding:20px 16px 0 !important;
+}
+
+.detail-icon{
+  width:104px !important;
+  height:104px !important;
+  border-radius:24px !important;
+}
+
+.detail-app-name{
+  font-size:25px !important;
+}
+
+.detail-dev{
+  font-size:14px !important;
+}
+
+.store-loading-nav{
+  padding:calc(18px + env(safe-area-inset-top)) 22px 6px !important;
+}
+
+.store-nav-circle{
+  width:48px !important;
+  height:48px !important;
+  font-size:26px !important;
+}
+
+.store-loading-hero{
+  padding:24px 18px 18px !important;
+  gap:16px !important;
+}
+
+.store-loading-icon{
+  width:102px !important;
+  height:102px !important;
+  border-radius:24px !important;
+}
+
+.store-loading-name{
+  font-size:24px !important;
+}
+
+.store-loading-sub{
+  font-size:14px !important;
+}
+
+.store-loader-line{
+  margin-top:20px !important;
+  min-height:76px !important;
+}
+
+#cv-main,
+#cv-practice{
+  width:76px !important;
+  height:76px !important;
+  flex:0 0 76px !important;
+}
+
+/* 다운로드 상세 정보 */
+.store-stats{
+  margin:16px 16px 0 !important;
+  padding:14px 0 !important;
+}
+
+.store-stat-top{
+  font-size:12px !important;
+}
+
+.store-stat-val{
+  font-size:24px !important;
+}
+
+.store-news{
+  padding:22px 20px 0 !important;
+}
+
+.store-section-title{
+  font-size:25px !important;
+}
+
+.store-preview{
+  padding:24px 20px calc(38px + env(safe-area-inset-bottom)) !important;
+}
+
+.store-preview-card{
+  flex-basis:176px !important;
+  height:306px !important;
+  border-radius:22px !important;
+}
+
+/* 연습 앱 화면 */
+.practice-store-hero{
+  padding:calc(24px + env(safe-area-inset-top)) 18px 18px !important;
+  gap:16px !important;
+}
+
+.practice-store-icon{
+  width:102px !important;
+  height:102px !important;
+  border-radius:24px !important;
+}
+
+.practice-store-name{
+  font-size:24px !important;
+}
+
+.practice-store-sub{
+  font-size:14px !important;
+}
+
+.practice-loader-line{
+  margin-top:20px !important;
+  min-height:76px !important;
+}
+
+.practice-store-stats{
+  margin:16px 16px 0 !important;
+  padding:14px 0 !important;
+}
+
+.practice-store-section{
+  padding:24px 20px 38px !important;
+}
+
+.practice-preview-card{
+  flex-basis:176px !important;
+  height:300px !important;
+  border-radius:22px !important;
+}
+
+/* 설문 화면 */
+.survey-container{
+  max-width:393px !important;
+  padding:14px 13px calc(28px + env(safe-area-inset-bottom)) !important;
+}
+
+.survey-head{
+  border-radius:20px !important;
+  padding:17px 15px !important;
+}
+
+.survey-title{
+  font-size:19px !important;
+}
+
+.q-card{
+  border-radius:19px !important;
+  padding:16px 13px 14px !important;
+}
+
+.q-text{
+  font-size:14px !important;
+  line-height:1.55 !important;
+}
+
+.likert-row{
+  gap:5px !important;
+}
+
+.lbtn{
+  min-height:42px !important;
+  border-radius:12px !important;
+  font-size:14.5px !important;
+}
+
+.survey-actions{
+  padding-bottom:calc(14px + env(safe-area-inset-bottom)) !important;
+}
+
+.survey-btn{
+  min-height:52px !important;
+  border-radius:15px !important;
+}
+
+/* 시작 화면 */
+.start-shell{
+  max-width:393px !important;
+  padding:calc(24px + env(safe-area-inset-top)) 18px calc(30px + env(safe-area-inset-bottom)) !important;
+}
+
+.start-hero{
+  border-radius:24px !important;
+  padding:26px 20px 22px !important;
+}
+
+.start-title{
+  font-size:28px !important;
+}
+
+.start-btn{
+  min-height:54px !important;
+  border-radius:15px !important;
+}
+</style>
+
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     1. 시작 화면
+══════════════════════════════ -->
+<div id="s-start" class="screen active">
+  <div class="start-shell">
+    <div class="start-hero">
+      <div class="start-badge"><span class="start-badge-dot"></span>Research Prototype</div>
+      <div class="start-title">iPhone App Store<br>다운로드 경험 연구</div>
+      <div class="start-sub">App Store에서 앱을 다운로드할 때 나타나는 로딩 화면이 사용자 경험에 미치는 영향을 연구합니다.</div>
+
+      <div class="scenario-box">
+        <p><b>상황 안내</b><br>
+        당신은 아이폰 App Store에서 여러 앱을 살펴보고, 필요한 앱을 다운로드하는 상황입니다.<br><br>
+        각 앱을 선택한 뒤 <b>"받기"</b> 버튼을 누르면 앱 다운로드 과정이 시작됩니다. 다운로드 중 나타나는 로딩 화면을 실제 앱 설치 과정이라고 생각하고 자연스럽게 기다려주세요.<br><br>
+        각 다운로드가 끝난 뒤에는 방금 경험한 로딩 화면에 대해 설문에 응답해주시면 됩니다.</p>
+      </div>
+
+      <div class="step-row">
+        <div class="step-card">
+          <div class="step-num">Step 01</div>
+          <div class="step-name">앱 선택 &amp; 받기</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Step 02</div>
+          <div class="step-name">다운로드 관찰</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Step 03</div>
+          <div class="step-name">즉시 설문 응답</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">Step 04</div>
+          <div class="step-name">8개 앱 반복</div>
+        </div>
+      </div>
+
+      <div class="pid-section">
+        <label class="pid-label" for="pid-input">참가자 번호</label>
+        <input type="number" id="pid-input" class="pid-input" placeholder="실험자에게 안내받은 번호를 입력해주세요" min="1" inputmode="numeric">
+      </div>
+      <button class="start-btn" onclick="startExp()">App Store로 이동하기 →</button>
+      <div class="start-note">실험 중에는 브라우저 뒤로가기나 새로고침을 누르지 말고 순서대로 진행해주세요.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     연습 시행
+══════════════════════════════ -->
+<div id="s-practice-attention" class="screen dark-screen">
+  <div class="dark-box">
+    <div class="dark-kicker">Practice Trial</div>
+    <div class="dark-title">연습 시행을 시작합니다</div>
+    <div class="dark-sub">실제 실험과 동일한 길이로 로딩 화면이 제시됩니다.</div>
+    <div class="pulse-wrap"><div class="pulse"></div></div>
+  </div>
+</div>
+
+
+<div id="s-practice-loading" class="screen">
+  <div class="practice-store-page">
+    <div class="store-loading-nav">
+      <div class="store-nav-circle">‹</div>
+      <div class="store-nav-circle">⇧</div>
+    </div>
+
+    <div class="practice-store-hero">
+      <div class="practice-store-icon">
+        <div class="practice-store-icon-inner">🥕</div>
+      </div>
+      <div class="practice-store-info">
+        <div class="practice-store-name">연습 앱</div>
+        <div class="practice-store-sub">다운로드 화면 연습용 앱</div>
+        <div class="practice-loader-line">
+          <div class="store-large-circle">
+            <svg viewBox="0 0 46 46">
+              <circle class="track" cx="23" cy="23" r="20"></circle>
+              <circle class="progress" cx="23" cy="23" r="20"></circle>
+            </svg>
+          </div>
+          <div class="practice-store-state" id="practice-store-state">다운로드 중…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="practice-store-stats">
+      <div class="practice-store-stat">
+        <div class="practice-store-stat-top">평가</div>
+        <div class="practice-store-stat-val">4.6</div>
+      </div>
+      <div class="practice-store-stat">
+        <div class="practice-store-stat-top">연령</div>
+        <div class="practice-store-stat-val">4+</div>
+      </div>
+      <div class="practice-store-stat">
+        <div class="practice-store-stat-top">차트</div>
+        <div class="practice-store-stat-val">#12</div>
+      </div>
+    </div>
+
+    <div class="practice-store-section">
+      <div class="practice-store-section-title">미리 보기</div>
+      <div class="practice-preview-row">
+        <div class="practice-preview-card">앱 다운로드<br>연습 화면</div>
+        <div class="practice-preview-card" style="background:linear-gradient(160deg,#fff,#f5f5f7);color:#111">설치 과정<br>확인하기</div>
+      </div>
+    </div>
+
+    <canvas id="cv-practice" style="display:none"></canvas>
+  </div>
+</div>
+
+
+<div id="s-practice-survey" class="screen"></div>
+
+<!-- ══════════════════════════════
+     2. App Store 앱 목록
+══════════════════════════════ -->
+<div id="s-applist" class="screen" style="flex-direction:column">
+  <!-- iOS Status Bar -->
+  <div class="ios-statusbar">
+    <span class="ios-statusbar-time" id="statusbar-time">9:41</span>
+    <span class="ios-statusbar-icons">●●● 🔋</span>
+  </div>
+
+  <!-- 헤더 -->
+  <div class="applist-header">
+    <div class="applist-title">앱</div>
+    <div class="applist-subtitle">App Store</div>
+    <div class="applist-progress">
+      <span class="applist-progress-text" id="applist-progress-text">0 / 8개 앱 다운로드</span>
+      <div class="applist-progress-bar">
+        <div class="applist-progress-fill" id="applist-progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 앱 목록 -->
+  <div class="applist-scroll">
+    <div class="applist-section-title">추천 앱</div>
+    <div id="app-list-container"></div>
+  </div>
+
+  <!-- 탭바 -->
+  <div class="ios-tabbar">
+    <div class="ios-tab"><span class="ios-tab-icon">🌐</span><span class="ios-tab-label">투데이</span></div>
+    <div class="ios-tab"><span class="ios-tab-icon">🎮</span><span class="ios-tab-label">게임</span></div>
+    <div class="ios-tab active"><span class="ios-tab-icon" style="color:#007AFF">📱</span><span class="ios-tab-label" style="color:#007AFF">앱</span></div>
+    <div class="ios-tab"><span class="ios-tab-icon">🔍</span><span class="ios-tab-label">검색</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     3. 앱 상세 화면
+══════════════════════════════ -->
+<div id="s-appdetail" class="screen" style="flex-direction:column">
+  <div class="ios-statusbar" style="background:#fff">
+    <span class="ios-statusbar-time">9:41</span>
+    <span class="ios-statusbar-icons">●●● 🔋</span>
+  </div>
+  <div class="detail-nav">
+    <button class="detail-back" onclick="show('s-applist')">‹ 앱</button>
+    <button class="detail-share">⬆</button>
+  </div>
+  <div class="detail-scroll">
+    <!-- 상단 앱 정보 -->
+    <div class="detail-hero">
+      <div class="detail-hero-row">
+        <div class="detail-icon">
+          <div class="detail-icon-img" id="detail-icon-img">📱</div>
+        </div>
+        <div class="detail-meta">
+          <div class="detail-app-name" id="detail-app-name">앱 이름</div>
+          <div class="detail-dev" id="detail-dev">개발사</div>
+          <button class="detail-get-btn" id="detail-get-btn" onclick="startDownload()">받기</button>
+        </div>
+      </div>
+
+      <!-- 통계 -->
+      <div class="detail-stats" id="detail-stats">
+        <div class="detail-stat">
+          <div class="detail-stat-val" id="detail-rating">4.8</div>
+          <div class="detail-stat-sub">평점</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-val" id="detail-age">4+</div>
+          <div class="detail-stat-sub">연령</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-val" id="detail-rank">#12</div>
+          <div class="detail-stat-sub">차트</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-val" id="detail-cat">생산성</div>
+          <div class="detail-stat-sub">카테고리</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 새로운 소식 -->
+    <div class="detail-section">
+      <div class="detail-section-title">새로운 소식</div>
+      <div class="detail-whatsnew" id="detail-whatsnew">버그 수정 및 성능 향상</div>
+      <div class="detail-version" id="detail-version">버전 2.4.1 • 2일 전</div>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <!-- 미리 보기 -->
+    <div class="detail-section" style="padding-bottom:16px">
+      <div class="detail-section-title">미리 보기</div>
+      <div class="detail-preview-row" id="detail-preview-row"></div>
+    </div>
+
+    <!-- 정보 -->
+    <div class="detail-section" style="padding-bottom:24px">
+      <div class="detail-section-title">앱 정보</div>
+      <div style="font-size:13px;color:#3c3c43;line-height:1.7" id="detail-description">이 앱에 대한 설명이 여기에 표시됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     4. 다운로드 로딩 화면
+══════════════════════════════ -->
+
+<div id="s-loading" class="screen">
+  <div class="store-loading-page">
+    <div class="store-loading-nav">
+      <button class="store-nav-circle" onclick="show('s-appdetail')" aria-label="뒤로가기">‹</button>
+      <button class="store-nav-circle" aria-label="공유">⇧</button>
+    </div>
+
+    <div class="store-loading-hero">
+      <div class="store-loading-icon">
+        <div class="store-loading-icon-inner" id="store-loading-icon-inner">🥕</div>
+      </div>
+      <div class="store-loading-info">
+        <div class="store-loading-name" id="store-loading-name">당근</div>
+        <div class="store-loading-sub" id="store-loading-sub">당신 근처의 지역 생활 커뮤니티</div>
+        <div class="store-loader-line">
+          <div class="store-large-circle">
+            <svg viewBox="0 0 46 46">
+              <circle class="track" cx="23" cy="23" r="20"></circle>
+              <circle class="progress" cx="23" cy="23" r="20"></circle>
+            </svg>
+          </div>
+          <div class="store-loading-state" id="store-loading-state">다운로드 중…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="store-stats">
+      <div class="store-stat">
+        <div class="store-stat-top">3.9만개의 평가</div>
+        <div class="store-stat-val" id="store-rating">3.9</div>
+        <div class="store-stat-sub">★★★★★</div>
+      </div>
+      <div class="store-stat">
+        <div class="store-stat-top">연령</div>
+        <div class="store-stat-val" id="store-age">12+</div>
+        <div class="store-stat-sub">앱 내 제어</div>
+      </div>
+      <div class="store-stat">
+        <div class="store-stat-top">차트</div>
+        <div class="store-stat-val" id="store-rank">#6</div>
+        <div class="store-stat-sub" id="store-category">소셜 네트워킹</div>
+      </div>
+    </div>
+
+    <div class="store-news">
+      <div class="store-section-title">새로운 소식 ›</div>
+      <div class="store-news-meta">
+        <span id="store-version">버전 26.17.0</span>
+        <span>4일 전</span>
+      </div>
+      <div class="store-news-text">● 소소한 버그 및 앱 사용성을 개선했어요.</div>
+    </div>
+
+    <div class="store-preview">
+      <div class="store-section-title">미리 보기</div>
+      <div class="store-preview-row" id="store-preview-row">
+        <div class="store-preview-card" style="background:linear-gradient(160deg,#b7e5ff,#eef9ff);color:#f97316">사운당근<br><span style="font-size:14px;color:#f97316">나를 둘러싼 모든 삶은<br>당근으로 굴러간다</span></div>
+        <div class="store-preview-card" style="background:linear-gradient(160deg,#fff,#f5f5f7);color:#111">믿을만한<br>이웃 간 중고거래</div>
+      </div>
+    </div>
+
+    <canvas id="cv-main" style="display:none"></canvas>
+  </div>
+</div>
+<!-- ══════════════════════════════
+     5. 설문 화면
+══════════════════════════════ -->
+<div id="s-survey" class="screen"></div>
+
+<!-- ══════════════════════════════
+     6. 최종 비교 평가
+══════════════════════════════ -->
+<div id="s-final" class="screen" style="background:#f2f2f7">
+  <div class="survey-container">
+    <div class="survey-head">
+      <div class="survey-kicker">최종 비교 평가</div>
+      <div class="survey-title">전체 로딩 화면 비교 평가</div>
+      <div class="survey-sub">지금까지 경험한 8개의 앱 다운로드 로딩 화면을 비교하여 아래 항목에 응답해주세요.</div>
+    </div>
+
+    <div class="section-label">지각된 대기 시간</div>
+    <div class="q-card">
+      <div class="q-text">전체 조건 중 가장 짧게 느껴진 로딩 화면은 무엇이었습니까?</div>
+      <div class="final-grid" id="grid-shortest"></div>
+    </div>
+
+    <div class="section-label">선호도</div>
+    <div class="q-card">
+      <div class="q-text">전체 조건 중 전반적으로 가장 선호하는 로딩 화면은 무엇이었습니까?</div>
+      <div class="final-grid" id="grid-preferred"></div>
+    </div>
+
+    <div class="section-label">선택 이유</div>
+    <div class="q-card">
+      <div class="q-text">선택한 이유를 간단히 적어주세요. <span style="color:#8e8e93;font-size:12px">(선택 사항)</span></div>
+      <textarea id="reason-txt" placeholder="예: 진행 상황이 명확하게 보여서 기다리는 시간이 덜 길게 느껴졌습니다."></textarea>
+    </div>
+
+    <div class="survey-actions">
+      <button class="survey-btn" onclick="submitFinal()">응답 제출하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     7. 완료 화면
+══════════════════════════════ -->
+<div id="s-done" class="screen done-screen-bg">
+  <div class="done-panel">
+    <div class="done-glass">
+      <div class="done-icon">✓</div>
+      <div class="done-title">실험이 완료되었습니다</div>
+      <p class="done-sub">참여해 주셔서 감사합니다.<br>아래 버튼을 눌러 응답을 제출해주세요.</p>
+      <div class="done-pid" id="done-pid"></div>
+      <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+        <button class="done-btn primary-done" id="submit-btn" onclick="submitToSheet()">응답 데이터 제출</button>
+      </div>
+      <div id="submit-status" style="margin-top:12px;font-size:13px;line-height:1.6;min-height:20px;color:rgba(255,255,255,.6)"></div>
+      <div class="data-note" style="margin-top:12px">
+        전송이 실패하는 경우 아래 버튼으로 CSV를 저장한 뒤 실험자에게 전달해주세요.
+      </div>
+      <div style="margin-top:10px">
+        <button class="done-btn" onclick="downloadCSV()" style="opacity:.65;font-size:13px;min-height:42px">CSV로 저장 (백업)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 재생 모달 -->
+<div id="replay-modal">
+  <div class="replay-kicker" id="replay-kicker">조건 1</div>
+  <div class="replay-title" id="replay-title">로딩 재생 중</div>
+  <div class="replay-sub" id="replay-sub"></div>
+  <div id="replay-canvas-wrap">
+    <canvas id="replay-canvas"></canvas>
+  </div>
+  <button class="replay-close-btn" id="replay-close-btn" onclick="closeReplay()" style="display:none">닫기</button>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// 앱 데이터
+// ────────────────────────────────────────────────
+const APPS = [
+  {
+    id:1, name:'포켓 노트', dev:'Pocket Apps Inc.',
+    desc:'언제 어디서나 빠르게 메모하는 노트 앱',
+    category:'생산성', rating:'4.8', age:'4+', rank:'#5',
+    whatsnew:'위젯 지원 추가 및 동기화 속도 개선',
+    version:'3.1.0 • 3일 전',
+    appDesc:'간결하고 직관적인 인터페이스로 생각을 빠르게 기록하세요. 폴더 정리, 태그, 검색 기능을 지원합니다.',
+    colors:['#5e5ce6','#3634a3'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="14" y="10" width="32" height="40" rx="5" fill="white" fill-opacity=".95"/><rect x="19" y="18" width="22" height="2.5" rx="1.25" fill="#5e5ce6"/><rect x="19" y="24" width="16" height="2.5" rx="1.25" fill="#5e5ce6" fill-opacity=".5"/><rect x="19" y="30" width="19" height="2.5" rx="1.25" fill="#5e5ce6" fill-opacity=".5"/><rect x="19" y="36" width="13" height="2.5" rx="1.25" fill="#5e5ce6" fill-opacity=".3"/><circle cx="42" cy="44" r="8" fill="#5e5ce6"/><path d="M38.5 44l2.5 2.5 4-4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    previewColors:[['#5e5ce6','#3634a3'],['#6e6e73','#3a3a3c'],['#5e5ce6','#48484a']]
+  },
+  {
+    id:2, name:'데일리 날씨', dev:'Weather Studio',
+    desc:'정확한 시간별 날씨 예보와 알림',
+    category:'날씨', rating:'4.6', age:'4+', rank:'#2',
+    whatsnew:'레이더 지도 기능 추가',
+    version:'5.0.2 • 1주 전',
+    appDesc:'실시간 날씨 정보와 7일 예보, 자외선 지수, 미세먼지 정보를 한눈에 확인하세요.',
+    colors:['#32ade6','#0071e3'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="22" r="9" fill="#ffe434"/><path d="M30 8v3M30 34v3M44 22h-3M19 22h-3M40.2 12.8l-2.1 2.1M21.9 31.1l-2.1 2.1M40.2 31.2l-2.1-2.1M21.9 12.9l-2.1-2.1" stroke="#ffe434" stroke-width="2.2" stroke-linecap="round"/><path d="M16 38c0-4.4 3.6-8 8-8h.4a10 10 0 0119.2 2A6 6 0 0142 44H18a5 5 0 01-2-9.6" fill="white" fill-opacity=".9"/></svg>`,
+    previewColors:[['#32ade6','#0071e3'],['#1c1c1e','#2c2c2e'],['#32ade6','#5ac8fa']]
+  },
+  {
+    id:3, name:'루틴 플래너', dev:'Habit Labs',
+    desc:'매일 습관을 만들어주는 루틴 트래커',
+    category:'건강', rating:'4.9', age:'4+', rank:'#8',
+    whatsnew:'통계 화면 개편 및 알림 옵션 추가',
+    version:'2.8.0 • 4일 전',
+    appDesc:'아침 루틴부터 저녁 루틴까지, 나만의 습관을 설계하고 스트릭으로 동기부여하세요.',
+    colors:['#30d158','#25a244'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="14" width="36" height="32" rx="6" fill="white" fill-opacity=".15" stroke="white" stroke-opacity=".3" stroke-width="1.5"/><circle cx="21" cy="24" r="3.5" fill="white" fill-opacity=".9"/><circle cx="21" cy="33" r="3.5" fill="white" fill-opacity=".5"/><circle cx="21" cy="42" r="3.5" fill="white" fill-opacity=".3"/><rect x="28" y="22" width="14" height="2.5" rx="1.25" fill="white" fill-opacity=".9"/><rect x="28" y="31" width="10" height="2.5" rx="1.25" fill="white" fill-opacity=".5"/><rect x="28" y="40" width="12" height="2.5" rx="1.25" fill="white" fill-opacity=".3"/><path d="M17.5 24l2 2 4-4" stroke="#30d158" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    previewColors:[['#30d158','#25a244'],['#1c1c1e','#2c2c2e'],['#30d158','#34c759']]
+  },
+  {
+    id:4, name:'미니 번역기', dev:'LangTech Co.',
+    desc:'120개 언어 즉시 번역 및 음성 인식',
+    category:'유틸리티', rating:'4.7', age:'4+', rank:'#15',
+    whatsnew:'카메라 번역 기능 베타 출시',
+    version:'4.2.1 • 2일 전',
+    appDesc:'텍스트, 음성, 카메라로 언어 장벽 없이 소통하세요. 오프라인 번역도 지원합니다.',
+    colors:['#ff6961','#d93025'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="16" stroke="white" stroke-opacity=".8" stroke-width="1.8"/><path d="M14 30h32M30 14c-4 6-4 26 0 32M30 14c4 6 4 26 0 32" stroke="white" stroke-opacity=".8" stroke-width="1.8"/><path d="M18 22h24M18 38h24" stroke="white" stroke-opacity=".5" stroke-width="1.5"/></svg>`,
+    previewColors:[['#ff6961','#d93025'],['#1c1c1e','#2c2c2e'],['#ff6961','#ff453a']]
+  },
+  {
+    id:5, name:'사진 정리함', dev:'Gallery Works',
+    desc:'AI가 자동으로 분류하는 스마트 앨범',
+    category:'사진 및 비디오', rating:'4.5', age:'4+', rank:'#20',
+    whatsnew:'얼굴 인식 정확도 향상',
+    version:'1.9.3 • 5일 전',
+    appDesc:'수천 장의 사진을 AI가 자동으로 분류하고 중복을 제거합니다. 소중한 추억을 깔끔하게 보관하세요.',
+    colors:['#bf5af2','#9b38d4'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="11" y="15" width="38" height="30" rx="6" fill="white" fill-opacity=".15" stroke="white" stroke-opacity=".4" stroke-width="1.5"/><circle cx="22" cy="24" r="4" fill="#ffe434"/><path d="M11 36l10-9 7 7 5-5 12 12" stroke="white" stroke-opacity=".9" stroke-width="2" stroke-linejoin="round"/></svg>`,
+    previewColors:[['#bf5af2','#9b38d4'],['#1c1c1e','#2c2c2e'],['#bf5af2','#af52de']]
+  },
+  {
+    id:6, name:'오늘의 운동', dev:'FitLife Studio',
+    desc:'홈트레이닝 맞춤 운동 플랜',
+    category:'건강 및 피트니스', rating:'4.8', age:'4+', rank:'#3',
+    whatsnew:'새 운동 영상 150개 추가',
+    version:'6.1.0 • 3일 전',
+    appDesc:'전문 트레이너가 설계한 맞춤 운동 플랜으로 집에서도 체계적으로 운동할 수 있습니다.',
+    colors:['#ff9f0a','#d4700a'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="27" width="6" height="6" rx="3" fill="white" fill-opacity=".9"/><rect x="46" y="27" width="6" height="6" rx="3" fill="white" fill-opacity=".9"/><rect x="14" y="24" width="8" height="12" rx="4" fill="white" fill-opacity=".9"/><rect x="38" y="24" width="8" height="12" rx="4" fill="white" fill-opacity=".9"/><rect x="22" y="22" width="16" height="16" rx="5" fill="white"/><rect x="28" y="28" width="4" height="4" rx="2" fill="#ff9f0a"/></svg>`,
+    previewColors:[['#ff9f0a','#d4700a'],['#1c1c1e','#2c2c2e'],['#ff9f0a','#ff9500']]
+  },
+  {
+    id:7, name:'가계부 라이트', dev:'MoneyFlow Inc.',
+    desc:'간편 지출 기록과 월별 예산 관리',
+    category:'금융', rating:'4.6', age:'4+', rank:'#7',
+    whatsnew:'은행 연동 기능 추가',
+    version:'3.5.2 • 1일 전',
+    appDesc:'매일 2분으로 지출을 기록하고 소비 패턴을 분석하세요. 목표 예산 설정도 지원합니다.',
+    colors:['#34aadc','#007aff'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="16" width="36" height="28" rx="6" fill="white" fill-opacity=".15" stroke="white" stroke-opacity=".4" stroke-width="1.5"/><path d="M20 36l6-8 6 4 8-12" stroke="white" stroke-opacity=".9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38" cy="24" r="5" fill="white" fill-opacity=".9"/><path d="M36 24h4M38 22v4" stroke="#34aadc" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    previewColors:[['#34aadc','#007aff'],['#1c1c1e','#2c2c2e'],['#34aadc','#5ac8fa']]
+  },
+  {
+    id:8, name:'집중 타이머', dev:'Focus Mode Labs',
+    desc:'포모도로 기법의 생산성 타이머',
+    category:'생산성', rating:'4.9', age:'4+', rank:'#1',
+    whatsnew:'Apple Watch 앱 출시',
+    version:'2.0.0 • 오늘',
+    appDesc:'25분 집중 + 5분 휴식의 리듬으로 최대 생산성을 경험하세요. 통계와 배경음악도 제공합니다.',
+    colors:['#ff3b30','#c0392b'],
+    svg:`<svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="32" r="16" stroke="white" stroke-opacity=".9" stroke-width="2"/><circle cx="30" cy="32" r="16" stroke="white" stroke-opacity=".3" stroke-width="5" stroke-dasharray="60 40" stroke-linecap="round" transform="rotate(-90 30 32)"/><path d="M30 24v10l6 3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="26" y="12" width="8" height="3" rx="1.5" fill="white" fill-opacity=".7"/></svg>`,
+    previewColors:[['#ff3b30','#c0392b'],['#1c1c1e','#2c2c2e'],['#ff3b30','#ff453a']]
+  }
+];
+
+let completedApps = new Set(); // 완료된 앱 id들
+let currentAppId = null;       // 현재 선택한 앱 id
+
+// ────────────────────────────────────────────────
+// 앱 목록 렌더링
+// ────────────────────────────────────────────────
+function renderAppList() {
+  const container = document.getElementById('app-list-container');
+  container.innerHTML = '';
+  const done = completedApps.size;
+  document.getElementById('applist-progress-text').textContent = `${done} / 8개 앱 다운로드`;
+  document.getElementById('applist-progress-fill').style.width = (done / 8 * 100) + '%';
+
+  APPS.forEach(app => {
+    const isDone = completedApps.has(app.id);
+    const row = document.createElement('div');
+    row.className = 'app-row' + (isDone ? ' done' : '');
+
+    row.innerHTML = `
+      <div class="app-icon-wrap">
+        <div class="app-icon-img" style="background:linear-gradient(145deg,${app.colors[0]},${app.colors[1]})">${app.svg}</div>
+      </div>
+      <div class="app-info">
+        <div class="app-name">${app.name}</div>
+        <div class="app-desc">${app.desc}</div>
+        <div class="app-rating"><span class="app-stars">★★★★★</span> ${app.rating} · ${app.category}</div>
+      </div>
+      <button class="app-get-btn ${isDone ? 'done-btn' : ''}" onclick="event.stopPropagation();${isDone ? '' : 'selectApp('+app.id+')'}">
+        ${isDone ? '열기' : '받기'}
+      </button>
+    `;
+
+    if (!isDone) {
+      row.onclick = () => selectApp(app.id);
+    }
+    container.appendChild(row);
+  });
+}
+
+// ────────────────────────────────────────────────
+// 앱 선택 → 상세 화면
+// ────────────────────────────────────────────────
+function selectApp(appId) {
+  currentAppId = appId;
+  const app = APPS.find(a => a.id === appId);
+
+  // 상세 화면 채우기
+  const iconEl = document.getElementById('detail-icon-img');
+  iconEl.innerHTML = app.svg;
+  iconEl.style.background = `linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`;
+  document.getElementById('detail-icon-img').style.background = `linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`;
+  document.getElementById('detail-app-name').textContent = app.name;
+  document.getElementById('detail-dev').textContent = app.dev;
+  document.getElementById('detail-rating').textContent = app.rating;
+  document.getElementById('detail-age').textContent = app.age;
+  document.getElementById('detail-rank').textContent = app.rank;
+  document.getElementById('detail-cat').textContent = app.category;
+  document.getElementById('detail-whatsnew').textContent = app.whatsnew;
+  document.getElementById('detail-version').textContent = app.version;
+  document.getElementById('detail-description').textContent = app.appDesc;
+
+  // 미리보기 카드 — 실제 앱 스크린샷 스타일
+  const previewRow = document.getElementById('detail-preview-row');
+  previewRow.innerHTML = '';
+  getAppPreviews(app).forEach(html => {
+    const card = document.createElement('div');
+    card.className = 'detail-preview-card';
+    card.innerHTML = html;
+    previewRow.appendChild(card);
+  });
+
+  show('s-appdetail');
+}
+
+// ────────────────────────────────────────────────
+// 받기 버튼 → 로딩
+// ────────────────────────────────────────────────
+function startDownload() {
+  const app = APPS.find(a => a.id === currentAppId);
+  const loadIconEl = document.getElementById('loading-icon-emoji');
+  loadIconEl.innerHTML = app.svg;
+  loadIconEl.style.background = `linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`;
+  document.getElementById('loading-app-name').textContent = app.name;
+  document.getElementById('loading-status').textContent = '다운로드 중…';
+
+  show('s-loading');
+  runLoading();
+}
+
+// 로딩 절반 시점에 상태 텍스트 변경
+function scheduleStatusChange() {
+  setTimeout(() => {
+    const el = document.getElementById('loading-status');
+    if (el) el.textContent = '설치 중…';
+  }, 7500);
+}
+
+// ────────────────────────────────────────────────
+// 설문 제출 후 → 앱 목록 복귀
+// ────────────────────────────────────────────────
+function afterSurvey() {
+  completedApps.add(currentAppId);
+  renderAppList();
+  show('s-applist');
+}
+
+// ────────────────────────────────────────────────
+// 앱별 실제 스크린샷처럼 보이는 미리보기 HTML
+// ────────────────────────────────────────────────
+function getAppPreviews(app) {
+  const previews = {
+    1: [ // 포켓 노트
+      `<div style="background:#fff;width:100%;height:100%;font-family:inherit;overflow:hidden">
+        <div style="background:#f2f2f7;padding:14px 14px 10px;border-bottom:1px solid #e5e5ea">
+          <div style="font-size:20px;font-weight:800;color:#1c1c1e;letter-spacing:-.03em">노트</div>
+          <div style="margin-top:8px;background:#fff;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px;color:#8e8e93">🔍 검색</span>
+          </div>
+        </div>
+        <div style="padding:12px 14px;background:#f2f2f7">
+          <div style="font-size:11px;font-weight:700;color:#8e8e93;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px">오늘</div>
+          ${['회의 아이디어 정리','장보기 목록','프로젝트 기획안 초안','독서 기록 — 원씽','주간 회고'].map((t,i)=>`
+          <div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+            <div style="font-size:14px;font-weight:600;color:#1c1c1e">${t}</div>
+            <div style="font-size:12px;color:#8e8e93;margin-top:2px">${['오늘 오전 11:24','오늘 오전 9:03','어제','3일 전','일주일 전'][i]} · 메모 ${i+1}줄</div>
+          </div>`).join('')}
+        </div>
+      </div>`,
+      `<div style="background:#fff;width:100%;height:100%;font-family:inherit;overflow:hidden">
+        <div style="background:#fff;padding:14px 14px 10px;display:flex;align-items:center;gap:8px;border-bottom:.5px solid #e5e5ea">
+          <div style="color:#007AFF;font-size:16px;font-weight:500">‹ 노트</div>
+          <div style="flex:1;text-align:right;color:#007AFF;font-size:15px">완료</div>
+        </div>
+        <div style="padding:16px 18px">
+          <div style="font-size:22px;font-weight:800;color:#1c1c1e;margin-bottom:4px">회의 아이디어 정리</div>
+          <div style="font-size:12px;color:#8e8e93;margin-bottom:16px">오늘 오전 11:24</div>
+          <div style="font-size:15px;line-height:1.7;color:#1c1c1e">
+            <p>• 신규 기능 우선순위 재정립</p>
+            <p style="margin-top:6px">• UX 리서치 일정 조율 필요</p>
+            <p style="margin-top:6px">• 다음 스프린트 목표 설정</p>
+            <p style="margin-top:6px">• 팀원 피드백 수집 방안</p>
+          </div>
+        </div>
+      </div>`
+    ],
+    2: [ // 데일리 날씨
+      `<div style="background:linear-gradient(180deg,#1a7fd4,#0d5aa7);width:100%;height:100%;font-family:inherit;overflow:hidden;color:#fff">
+        <div style="padding:20px 18px 10px">
+          <div style="font-size:13px;font-weight:600;opacity:.8;text-align:center">서울특별시</div>
+          <div style="font-size:72px;font-weight:200;text-align:center;margin-top:2px;letter-spacing:-2px">18°</div>
+          <div style="font-size:16px;text-align:center;opacity:.9">맑음</div>
+          <div style="font-size:13px;text-align:center;opacity:.7;margin-top:2px">최고 23° 최저 12°</div>
+        </div>
+        <div style="background:rgba(255,255,255,.15);backdrop-filter:blur(10px);margin:10px 14px;border-radius:16px;padding:14px">
+          <div style="font-size:11px;font-weight:600;opacity:.7;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px">시간대별 날씨</div>
+          <div style="display:flex;gap:0;justify-content:space-between">
+            ${['지금','오후3','오후6','오후9','오전0'].map((t,i)=>`
+            <div style="text-align:center;flex:1">
+              <div style="font-size:12px;opacity:.8">${t}</div>
+              <div style="font-size:18px;margin:4px 0">${['☀️','⛅','🌤','🌙','🌙'][i]}</div>
+              <div style="font-size:13px;font-weight:600">${[18,20,16,14,12][i]}°</div>
+            </div>`).join('')}
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.15);margin:0 14px;border-radius:16px;padding:14px">
+          <div style="font-size:11px;font-weight:600;opacity:.7;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">주간 예보</div>
+          ${['오늘','내일','목','금','토'].map((d,i)=>`
+          <div style="display:flex;align-items:center;padding:4px 0;border-bottom:${i<4?'1px solid rgba(255,255,255,.1)':'none'}">
+            <div style="flex:1;font-size:14px;font-weight:500">${d}</div>
+            <div style="font-size:16px;margin-right:8px">${['☀️','⛅','🌧','🌤','☀️'][i]}</div>
+            <div style="font-size:13px;opacity:.7;width:24px;text-align:right">${[12,10,8,11,13][i]}°</div>
+            <div style="width:4px"></div>
+            <div style="font-size:13px;font-weight:600;width:28px;text-align:right">${[23,19,15,20,25][i]}°</div>
+          </div>`).join('')}
+        </div>
+      </div>`,
+      `<div style="background:linear-gradient(180deg,#1a7fd4,#0d5aa7);width:100%;height:100%;font-family:inherit;overflow:hidden;color:#fff;padding:18px 16px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px">생활 지수</div>
+        ${[['자외선','낮음','#34c759'],['미세먼지','좋음','#34c759'],['습도','56%','#007AFF'],['체감온도','16°','#ff9500']].map(([k,v,c])=>`
+        <div style="background:rgba(255,255,255,.15);border-radius:14px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:14px;opacity:.9">${k}</div>
+          <div style="font-size:16px;font-weight:700;color:${c}">${v}</div>
+        </div>`).join('')}
+      </div>`
+    ],
+    3: [ // 루틴 플래너
+      `<div style="background:#f2f2f7;width:100%;height:100%;font-family:inherit;overflow:hidden">
+        <div style="background:#fff;padding:14px 16px;border-bottom:.5px solid #e5e5ea">
+          <div style="font-size:20px;font-weight:800;color:#1c1c1e">오늘의 루틴</div>
+          <div style="font-size:13px;color:#8e8e93;margin-top:2px">4월 29일 화요일</div>
+          <div style="margin-top:10px;background:#f2f2f7;border-radius:8px;overflow:hidden">
+            <div style="height:6px;background:#30d158;width:60%;border-radius:8px"></div>
+          </div>
+          <div style="font-size:12px;color:#8e8e93;margin-top:4px">3/5 완료</div>
+        </div>
+        <div style="padding:12px 14px">
+          ${[['✅','기상 후 물 한 잔','완료','#30d158'],['✅','10분 스트레칭','완료','#30d158'],['✅','독서 30분','완료','#30d158'],['⬜','명상 10분','예정','#8e8e93'],['⬜','저널 쓰기','예정','#8e8e93']].map(([ic,t,s,c])=>`
+          <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+            <div style="font-size:22px">${ic}</div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600;color:#1c1c1e;${s==='완료'?'text-decoration:line-through;opacity:.5':''}">${t}</div>
+              <div style="font-size:12px;color:${c};margin-top:1px">${s}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`,
+      `<div style="background:#f2f2f7;width:100%;height:100%;font-family:inherit;overflow:hidden;padding:16px 14px">
+        <div style="font-size:20px;font-weight:800;color:#1c1c1e;margin-bottom:14px">스트릭 통계</div>
+        <div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+            ${['월','화','수','목','금','토','일'].map((d,i)=>`
+            <div style="text-align:center">
+              <div style="font-size:10px;color:#8e8e93;margin-bottom:4px">${d}</div>
+              <div style="width:28px;height:28px;border-radius:50%;background:${i<4?'#30d158':i===4?'rgba(48,209,88,.3)':'#e5e5ea'};display:flex;align-items:center;justify-content:center">
+                <div style="font-size:11px;color:${i<4?'#fff':'#8e8e93'};font-weight:700">${i<4?'✓':''}</div>
+              </div>
+            </div>`).join('')}
+          </div>
+          <div style="font-size:13px;color:#8e8e93;text-align:center">이번 주 4일 연속 달성 🔥</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${[['🔥','21일','최장 스트릭'],['📊','87%','이번 달 달성률']].map(([ic,v,l])=>`
+          <div style="background:#fff;border-radius:14px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+            <div style="font-size:24px">${ic}</div>
+            <div style="font-size:22px;font-weight:800;color:#1c1c1e;margin-top:4px">${v}</div>
+            <div style="font-size:11px;color:#8e8e93">${l}</div>
+          </div>`).join('')}
+        </div>
+      </div>`
+    ],
+    4: [ // 미니 번역기
+      `<div style="background:#fff;width:100%;height:100%;font-family:inherit;overflow:hidden">
+        <div style="background:#007AFF;padding:14px 16px 16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;color:#fff">
+            <div style="font-size:15px;font-weight:700;background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px">한국어</div>
+            <div style="font-size:20px">⇄</div>
+            <div style="font-size:15px;font-weight:700;background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px">English</div>
+          </div>
+        </div>
+        <div style="padding:16px">
+          <div style="background:#f2f2f7;border-radius:14px;padding:14px;min-height:80px">
+            <div style="font-size:16px;color:#1c1c1e;line-height:1.5">오늘 회의가 몇 시에 시작하나요?</div>
+          </div>
+          <div style="text-align:center;margin:10px 0;font-size:20px;color:#007AFF">↓</div>
+          <div style="background:#e8f4ff;border-radius:14px;padding:14px;border-left:3px solid #007AFF">
+            <div style="font-size:16px;color:#007AFF;font-weight:500;line-height:1.5">What time does the meeting start today?</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            ${['🔊 듣기','📋 복사','⭐️ 저장'].map(l=>`
+            <div style="flex:1;background:#f2f2f7;border-radius:10px;padding:9px;text-align:center;font-size:12px;color:#007AFF;font-weight:600">${l}</div>`).join('')}
+          </div>
+        </div>
+      </div>`,
+      `<div style="background:#f2f2f7;width:100%;height:100%;font-family:inherit;overflow:hidden;padding:14px">
+        <div style="font-size:17px;font-weight:700;color:#1c1c1e;margin-bottom:10px">언어 선택</div>
+        ${[['🇰🇷','한국어'],['🇺🇸','English'],['🇯🇵','日本語'],['🇨🇳','中文'],['🇪🇸','Español']].map(([f,n])=>`
+        <div style="background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)">
+          <div style="font-size:22px">${f}</div>
+          <div style="font-size:15px;font-weight:500;color:#1c1c1e;flex:1">${n}</div>
+          <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #007AFF;display:flex;align-items:center;justify-content:center">
+            <div style="width:12px;height:12px;border-radius:50%;background:#007AFF"></div>
+          </div>
+        </div>`).join('')}
+      </div>`
+    ],
+    5: [ // 사진 정리함
+      `<div style="background:#000;width:100%;height:100%;font-family:inherit;overflow:hidden">
+        <div style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:18px;font-weight:800;color:#fff">사진</div>
+          <div style="font-size:13px;color:#007AFF;font-weight:600">선택</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5px">
+          ${Array(12).fill(0).map((_,i)=>{
+            const colors=[['#667eea','#764ba2'],['#f093fb','#f5576c'],['#4facfe','#00f2fe'],['#43e97b','#38f9d7'],['#fa709a','#fee140'],['#a8edea','#fed6e3'],['#ffecd2','#fcb69f'],['#ff9a9e','#fecfef'],['#a1c4fd','#c2e9fb'],['#d4fc79','#96e6a1'],['#84fab0','#8fd3f4'],['#f6d365','#fda085']];
+            return `<div style="aspect-ratio:1;background:linear-gradient(135deg,${colors[i%12][0]},${colors[i%12][1]});position:relative">
+              ${i===2?'<div style="position:absolute;bottom:4px;right:4px;font-size:10px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.3);padding:2px 4px;border-radius:3px">동영상</div>':''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`,
+      `<div style="background:#f2f2f7;width:100%;height:100%;font-family:inherit;overflow:hidden;padding:14px">
+        <div style="font-size:18px;font-weight:800;color:#1c1c1e;margin-bottom:12px">앨범</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${[['최근 항목','284','#667eea','#764ba2'],['즐겨찾기','42','#fa709a','#fee140'],['여행','89','#4facfe','#00f2fe'],['음식','53','#43e97b','#38f9d7']].map(([n,c,c1,c2])=>`
+          <div>
+            <div style="border-radius:12px;overflow:hidden;aspect-ratio:1;background:linear-gradient(135deg,${c1},${c2})"></div>
+            <div style="font-size:13px;font-weight:600;color:#1c1c1e;margin-top:5px">${n}</div>
+            <div style="font-size:12px;color:#8e8e93">${c}장</div>
+          </div>`).join('')}
+        </div>
+      </div>`
+    ],
+    6: [ // 오늘의 운동
+      `<div style="background:#1c1c1e;width:100%;height:100%;font-family:inherit;overflow:hidden">
+        <div style="padding:16px 16px 10px">
+          <div style="font-size:20px;font-weight:800;color:#fff">오늘의 운동</div>
+          <div style="font-size:13px;color:#8e8e93;margin-top:2px">화요일 · 전신 루틴</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#ff9f0a,#d4700a);margin:8px 14px;border-radius:16px;padding:16px">
+          <div style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600">오늘의 목표</div>
+          <div style="display:flex;gap:14px;margin-top:8px">
+            ${[['420','kcal'],['35','분'],['4','세트']].map(([v,u])=>`
+            <div>
+              <div style="font-size:22px;font-weight:800;color:#fff">${v}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.7)">${u}</div>
+            </div>`).join('')}
+          </div>
+        </div>
+        ${[['스쿼트','3세트 × 15회','하체'],['푸시업','3세트 × 12회','상체'],['플랭크','1분 × 3세트','코어'],['런지','3세트 × 10회','하체']].map(([n,s,c])=>`
+        <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:.5px solid rgba(255,255,255,.08)">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,159,10,.2);display:flex;align-items:center;justify-content:center;margin-right:12px">
+            <div style="font-size:18px">💪</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;color:#fff">${n}</div>
+            <div style="font-size:12px;color:#8e8e93;margin-top:1px">${s}</div>
+          </div>
+          <div style="font-size:11px;background:rgba(255,159,10,.2);color:#ff9f0a;padding:3px 8px;border-radius:6px;font-weight:600">${c}</div>
+        </div>`).join('')}
+      </div>`,
+      `<div style="background:#1c1c1e;width:100%;height:100%;font-family:inherit;overflow:hidden;padding:16px">
+        <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:14px">이번 주 활동</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+          ${['월','화','수','목','금','토','일'].map((d,i)=>`
+          <div style="text-align:center">
+            <div style="font-size:10px;color:#8e8e93;margin-bottom:4px">${d}</div>
+            <div style="width:28px;height:${[60,80,0,40,0,0,0][i]}px;min-height:6px;background:${i<4&&[60,80,0,40][i]>0?'#ff9f0a':'rgba(255,255,255,.1)'};border-radius:4px;margin:0 auto"></div>
+            <div style="font-size:10px;color:${i<4&&[60,80,0,40][i]>0?'#ff9f0a':'#8e8e93'};margin-top:3px">${['420','580','','280','','',''][i]}</div>
+          </div>`).join('')}
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:16px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          ${[['🔥','1,280','이번 주 소모'],['⏱','115분','총 운동 시간'],['📈','3회','운동 완료'],['💪','12','완료 세트 수']].map(([ic,v,l])=>`
+          <div>
+            <div style="font-size:16px">${ic}</div>
+            <div style="font-size:18px;font-weight:800;color:#fff;margin-top:2px">${v}</div>
+            <div style="font-size:11px;color:#8e8e93">${l}</div>
+          </div>`).join('')}
+        </div>
+      </div>`
+    ],
+    7: [ // 가계부 라이트
+      `<div style="background:#f2f2f7;width:100%;height:100%;font-family:inherit;overflow:hidden">
+        <div style="background:#fff;padding:16px">
+          <div style="font-size:20px;font-weight:800;color:#1c1c1e">4월 지출</div>
+          <div style="font-size:36px;font-weight:200;color:#1c1c1e;margin-top:4px;letter-spacing:-1px">₩ 342,500</div>
+          <div style="font-size:13px;color:#8e8e93;margin-top:2px">예산 ₩500,000 중 68.5% 사용</div>
+          <div style="margin-top:8px;background:#f2f2f7;border-radius:4px;overflow:hidden;height:6px">
+            <div style="height:100%;width:68.5%;background:#007AFF;border-radius:4px"></div>
+          </div>
+        </div>
+        <div style="padding:12px 14px">
+          <div style="font-size:12px;font-weight:700;color:#8e8e93;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">최근 지출</div>
+          ${[['🍽️','외식','12,000','오전 12:30'],['🚇','교통','1,400','오전 9:15'],['☕','카페','5,500','어제'],['🛒','마트','38,400','2일 전'],['📺','구독','13,900','3일 전']].map(([ic,c,a,t])=>`
+          <div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)">
+            <div style="font-size:22px">${ic}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#1c1c1e">${c}</div>
+              <div style="font-size:12px;color:#8e8e93">${t}</div>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:#ff3b30">-₩${a}</div>
+          </div>`).join('')}
+        </div>
+      </div>`,
+      `<div style="background:#f2f2f7;width:100%;height:100%;font-family:inherit;overflow:hidden;padding:14px">
+        <div style="font-size:18px;font-weight:800;color:#1c1c1e;margin-bottom:12px">카테고리별 분석</div>
+        ${[['🍽️','식비','142,000',42,'#ff3b30'],['🛒','쇼핑','85,000',25,'#ff9f0a'],['🚇','교통','34,000',10,'#34c759'],['☕','카페','52,000',15,'#007AFF'],['📺','구독','29,500',8,'#bf5af2']].map(([ic,c,a,p,col])=>`
+        <div style="background:#fff;border-radius:12px;padding:11px 14px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.04)">
+          <div style="display:flex;align-items:center;margin-bottom:6px">
+            <div style="font-size:18px;margin-right:8px">${ic}</div>
+            <div style="font-size:14px;font-weight:600;color:#1c1c1e;flex:1">${c}</div>
+            <div style="font-size:13px;font-weight:700;color:#1c1c1e">₩${a}</div>
+          </div>
+          <div style="background:#f2f2f7;border-radius:3px;height:5px;overflow:hidden">
+            <div style="height:100%;width:${p}%;background:${col};border-radius:3px"></div>
+          </div>
+        </div>`).join('')}
+      </div>`
+    ],
+    8: [ // 집중 타이머
+      `<div style="background:#1c1c1e;width:100%;height:100%;font-family:inherit;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+        <div style="font-size:13px;color:#ff3b30;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px">집중 시간</div>
+        <div style="position:relative;width:160px;height:160px;margin-bottom:20px">
+          <svg viewBox="0 0 160 160" style="transform:rotate(-90deg);width:100%;height:100%">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="8"/>
+            <circle cx="80" cy="80" r="70" fill="none" stroke="#ff3b30" stroke-width="8" stroke-dasharray="440" stroke-dashoffset="132" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div style="font-size:42px;font-weight:200;color:#fff;letter-spacing:-1px">17:23</div>
+            <div style="font-size:12px;color:#8e8e93;margin-top:2px">남은 시간</div>
+          </div>
+        </div>
+        <div style="font-size:16px;color:rgba(255,255,255,.7);margin-bottom:24px">3번째 집중 세션</div>
+        <div style="display:flex;gap:16px">
+          <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff">⏸</div>
+          <div style="width:52px;height:52px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff">⏹</div>
+        </div>
+      </div>`,
+      `<div style="background:#f2f2f7;width:100%;height:100%;font-family:inherit;overflow:hidden;padding:14px">
+        <div style="font-size:18px;font-weight:800;color:#1c1c1e;margin-bottom:12px">오늘의 통계</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          ${[['🍅','4회','완료한 세션'],['⏱','100분','총 집중 시간'],['☕','2회','쉬는 시간'],['🔥','7일','연속 기록']].map(([ic,v,l])=>`
+          <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)">
+            <div style="font-size:22px">${ic}</div>
+            <div style="font-size:22px;font-weight:800;color:#1c1c1e;margin-top:6px">${v}</div>
+            <div style="font-size:11px;color:#8e8e93">${l}</div>
+          </div>`).join('')}
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)">
+          <div style="font-size:13px;font-weight:700;color:#1c1c1e;margin-bottom:8px">집중 시간대</div>
+          <div style="display:flex;align-items:flex-end;gap:3px;height:50px">
+            ${[3,5,8,6,9,7,4,2,6,8,5,3].map(v=>`
+            <div style="flex:1;background:#ff3b30;border-radius:2px;height:${v*6}px;opacity:${.4+v*.06}"></div>`).join('')}
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:#8e8e93">
+            <span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span>
+          </div>
+        </div>
+      </div>`
+    ]
+  };
+  return previews[app.id] || [`<div style="background:linear-gradient(135deg,${app.colors[0]},${app.colors[1]});width:100%;height:100%"></div>`, `<div style="background:linear-gradient(135deg,${app.colors[1]},${app.colors[0]});width:100%;height:100%"></div>`];
+}
+function updateStatusTime() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  const el = document.getElementById('statusbar-time');
+  if(el) el.textContent = `${h}:${m}`;
+}
+setInterval(updateStatusTime, 10000);
+updateStatusTime();
+
+
+// ══════════════════════════════════════════════════════
+// ─── 이하 기존 코드 전부 유지 ───
+// ══════════════════════════════════════════════════════
+
+// ─────────────────────────────────────
+// 단계식 위치 시간표
+// ─────────────────────────────────────
+const S_A15=[
+  {t:0,pct:0},
+  {t:500,pct:15},
+  {t:1000,pct:35},
+  {t:2000,pct:70},
+  {t:3000,pct:82},
+  {t:5000,pct:88},
+  {t:8000,pct:93},
+  {t:12000,pct:97},
+  {t:15000,pct:100}
+];
+const S_D15=[
+  {t:0,pct:0},
+  {t:1000,pct:5},
+  {t:3000,pct:10},
+  {t:8000,pct:13},
+  {t:11000,pct:18},
+  {t:13000,pct:70},
+  {t:14500,pct:85},
+  {t:15000,pct:100}
+];
+const S_A10=[
+  {t:0,pct:0},
+  {t:300,pct:15},
+  {t:700,pct:35},
+  {t:1300,pct:70},
+  {t:2000,pct:82},
+  {t:3300,pct:88},
+  {t:5300,pct:93},
+  {t:8000,pct:97},
+  {t:10000,pct:100}
+];
+const S_D10=[
+  {t:0,pct:0},
+  {t:700,pct:5},
+  {t:2000,pct:10},
+  {t:5300,pct:13},
+  {t:7300,pct:18},
+  {t:8700,pct:70},
+  {t:9700,pct:85},
+  {t:10000,pct:100}
+];
+
+const CONDITIONS=[
+  {id:1,label:'조건 1',desc:'단순 · 가속 · 진행형',wavy:false,steps:S_A15,spin:false},
+  {id:2,label:'조건 2',desc:'단순 · 감속 · 진행형',wavy:false,steps:S_D15,spin:false},
+  {id:3,label:'조건 3',desc:'구불 · 가속 · 진행형',wavy:true,steps:S_A15,spin:false},
+  {id:4,label:'조건 4',desc:'구불 · 감속 · 진행형',wavy:true,steps:S_D15,spin:false},
+  {id:5,label:'조건 5',desc:'단순 · 가속 · 진행+스피너',wavy:false,steps:S_A10,spin:true},
+  {id:6,label:'조건 6',desc:'단순 · 감속 · 진행+스피너',wavy:false,steps:S_D10,spin:true},
+  {id:7,label:'조건 7',desc:'구불 · 가속 · 진행+스피너',wavy:true,steps:S_A10,spin:true},
+  {id:8,label:'조건 8',desc:'구불 · 감속 · 진행+스피너',wavy:true,steps:S_D10,spin:true}
+];
+
+const TOTAL=15000,SPIN_START=10000,SW=8,AMP=7,FREQ=16,FLOW=7;
+let PID='',ORDER=[0,1,2,3,4,5,6,7],trialIdx=0,responses=[],practiceAns={},curAns={},finalShortest=null,finalPreferred=null,activeLoader=null;
+
+function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t}
+
+function show(id){
+  if(id!=='s-final' && typeof stopMiniPreviews==='function') stopMiniPreviews();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const target=document.getElementById(id);
+  target.classList.add('active');
+  target.scrollTop=0;
+  setTimeout(()=>{target.scrollTop=0; window.scrollTo(0,0);},0);
+  if(id==='s-final'){
+    setTimeout(()=>{
+      startMiniPreviewsForGrid('grid-shortest');
+      startMiniPreviewsForGrid('grid-preferred');
+    },120);
+  }
+}
+
+function makeCanvas(id){
+  const cv=document.getElementById(id),dpr=window.devicePixelRatio||1;
+  const cs=Math.min(window.innerWidth,window.innerHeight)*.56;
+  cv.style.width=cs+'px';cv.style.height=cs+'px';
+  cv.width=Math.round(cs*dpr);cv.height=Math.round(cs*dpr);
+  return cv;
+}
+
+function ansObj(){return{q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:null,q9:null,time:null}}
+
+// 8×8 Balanced Latin Square (Williams Design)
+const LATIN_SQUARE=[
+  [0,1,7,2,6,3,5,4],
+  [1,2,0,3,7,4,6,5],
+  [2,3,1,4,0,5,7,6],
+  [3,4,2,5,1,6,0,7],
+  [4,5,3,6,2,7,1,0],
+  [5,6,4,7,3,0,2,1],
+  [6,7,5,0,4,1,3,2],
+  [7,0,6,1,5,2,4,3],
+];
+
+function getOrder(){
+  const p=new URLSearchParams(window.location.search).get('order');
+  if(p&&p.length===8){
+    const a=p.split('').map(c=>parseInt(c)-1);
+    if([...a].sort().join('')==='01234567')return a;
+  }
+  const pid=parseInt(PID)||1;
+  return LATIN_SQUARE[(pid-1)%8];
+}
+
+class PLoader{
+constructor(cv,wavy,steps,hasSpin){this.cv=cv;this.ctx=cv.getContext('2d');this.wavy=wavy;this.steps=steps;this.hasSpin=hasSpin;const cs=parseInt(cv.style.width);this.R=cs*.34;this.CX=cs/2;this.CY=cs/2;this.CAP=SW/2/this.R;this.p1End=hasSpin?SPIN_START:TOTAL;this.angle=-Math.PI/2;this.done=false;this.doneAt=null;this.raf=null;this.t0=null;this.cb=null}
+start(cb){this.cb=cb;this.t0=performance.now();this.raf=requestAnimationFrame(t=>this.loop(t))}
+stop(){if(this.raf)cancelAnimationFrame(this.raf)}
+loop(now){const el=now-this.t0;this.update(el);this.draw(el);if(el>=TOTAL+500){if(this.cb)this.cb();return}this.raf=requestAnimationFrame(t=>this.loop(t))}
+update(el){
+  if(el>=TOTAL){if(!this.done)this.doneAt=el;this.done=true;this.angle=-Math.PI/2+Math.PI*2;return}
+  this.done=false;
+  if(this.steps&&this.steps.length&&this.steps[0].pct!==undefined){
+    const MOVE_MS=420;const clamped=Math.min(el,this.p1End);let pct=this.steps[0].pct;
+    for(let i=1;i<this.steps.length;i++){
+      const prev=this.steps[i-1];const cur=this.steps[i];
+      if(clamped<cur.t){pct=prev.pct;break}
+      if(clamped>=cur.t&&clamped<cur.t+MOVE_MS){const r=(clamped-cur.t)/MOVE_MS;const eased=eio(Math.max(0,Math.min(1,r)));pct=prev.pct+(cur.pct-prev.pct)*eased;break}
+      pct=cur.pct;
+    }
+    this.angle=-Math.PI/2+(pct/100)*Math.PI*2;return;
+  }
+  if(el<=this.p1End){let rem=el,cum=0;for(let i=0;i<this.steps.length;i++){const s=this.steps[i],tot=s.dur+s.pause;if(rem<=tot){const d=rem<=s.dur?eio(rem/s.dur)*s.deg:s.deg;this.angle=-Math.PI/2+((cum+d)/360)*Math.PI*2;return}cum+=s.deg;rem-=tot}this.angle=-Math.PI/2+Math.PI*2}
+}
+draw(el){const{ctx,CX,CY,R,CAP}=this,dpr=window.devicePixelRatio||1,wt=el/1000;ctx.clearRect(0,0,this.cv.width,this.cv.height);ctx.save();ctx.scale(dpr,dpr);const sA=-Math.PI/2,fA=sA+Math.PI*2;if(this.done){ctx.beginPath();ctx.arc(CX,CY,R,sA,fA);ctx.strokeStyle='#007AFF';ctx.lineWidth=SW;ctx.lineCap='butt';ctx.stroke();const p=this.doneAt!=null?Math.min((el-this.doneAt)/400,1):1,ep=eio(p);ctx.save();ctx.globalAlpha=ep;ctx.translate(CX,CY);ctx.scale(ep,ep);ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fillStyle='#007AFF';ctx.fill();ctx.beginPath();ctx.moveTo(-10,1);ctx.lineTo(-3,10);ctx.lineTo(13,-10);ctx.strokeStyle='#fff';ctx.lineWidth=3.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();ctx.restore()}else if(this.hasSpin&&el>this.p1End){ctx.beginPath();ctx.arc(CX,CY,R,sA,fA);ctx.strokeStyle='#1d4f91';ctx.lineWidth=SW;ctx.lineCap='butt';ctx.stroke();const rot=(el-this.p1End)/1000*Math.PI*2*1.8-Math.PI/2;ctx.beginPath();ctx.arc(CX,CY,R,rot,rot+Math.PI*1.5);ctx.strokeStyle='#007AFF';ctx.lineWidth=SW;ctx.lineCap='round';ctx.stroke()}else{const eA=this.angle,span=eA-sA,gs=eA+CAP,ge=fA-CAP;if(span>.05&&gs<ge){ctx.beginPath();ctx.arc(CX,CY,R,gs,ge);ctx.strokeStyle='#1d4f91';ctx.lineWidth=SW;ctx.lineCap='round';ctx.stroke()}if(span>.01){if(!this.wavy){ctx.beginPath();ctx.arc(CX,CY,R,sA,eA);ctx.strokeStyle='#007AFF';ctx.lineWidth=SW;ctx.lineCap='round';ctx.stroke()}else this.wavyDraw(ctx,sA,eA,wt)}}ctx.restore()}
+wavyDraw(ctx,sA,eA,wt){const{CX,CY,R}=this,segs=280,span=eA-sA,pts=[];if(span<=.01)return;for(let i=0;i<=segs;i++){const t=i/segs,a=sA+t*span,ph=(a/(Math.PI*2))*Math.PI*2*FREQ-wt*FLOW;pts.push([CX+(R+AMP*Math.sin(ph))*Math.cos(a),CY+(R+AMP*Math.sin(ph))*Math.sin(a)])}ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<segs;i++){const mx=(pts[i-1][0]+pts[i][0])/2,my=(pts[i-1][1]+pts[i][1])/2;ctx.quadraticCurveTo(pts[i-1][0],pts[i-1][1],mx,my)}ctx.lineTo(pts[segs][0],pts[segs][1]);ctx.strokeStyle='#007AFF';ctx.lineWidth=SW;ctx.lineCap='round';ctx.stroke()}
+}
+
+class PracticeLoader{
+constructor(cv){this.cv=cv;this.ctx=cv.getContext('2d');const cs=parseInt(cv.style.width);this.R=cs*.34;this.CX=cs/2;this.CY=cs/2;this.dur=15000;this.t0=null;this.raf=null;this.cb=null}
+start(cb){this.cb=cb;this.t0=performance.now();this.raf=requestAnimationFrame(t=>this.loop(t))}
+stop(){if(this.raf)cancelAnimationFrame(this.raf)}
+loop(now){const el=now-this.t0;this.draw(el);if(el>=this.dur+500){if(this.cb)this.cb();return}this.raf=requestAnimationFrame(t=>this.loop(t))}
+draw(el){const{ctx,CX,CY,R}=this,dpr=window.devicePixelRatio||1,p=Math.min(el/this.dur,1),sA=-Math.PI/2;ctx.clearRect(0,0,this.cv.width,this.cv.height);ctx.save();ctx.scale(dpr,dpr);ctx.beginPath();ctx.arc(CX,CY,R,sA,sA+Math.PI*2);ctx.strokeStyle='#1d4f91';ctx.lineWidth=SW;ctx.lineCap='butt';ctx.stroke();if(p>.01){ctx.beginPath();ctx.arc(CX,CY,R,sA,sA+Math.PI*2*p);ctx.strokeStyle='#007AFF';ctx.lineWidth=SW;ctx.lineCap='round';ctx.stroke()}if(p>=1){const ep=eio(Math.min((el-this.dur)/400,1));ctx.save();ctx.globalAlpha=ep;ctx.translate(CX,CY);ctx.scale(ep,ep);ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fillStyle='#007AFF';ctx.fill();ctx.beginPath();ctx.moveTo(-10,1);ctx.lineTo(-3,10);ctx.lineTo(13,-10);ctx.strokeStyle='#fff';ctx.lineWidth=3.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();ctx.restore()}ctx.restore()}
+}
+
+function buildLikert(containerId,store,key){const c=document.getElementById(containerId);if(!c)return;c.innerHTML='';for(let i=1;i<=7;i++){const b=document.createElement('button');b.type='button';b.className='lbtn';b.textContent=i;b.onclick=()=>{c.querySelectorAll('.lbtn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');store[key]=i};c.appendChild(b)}}
+
+function surveyHTML(prefix,isMain){
+const inputId=isMain?'time-input':'ptime-input',action=isMain?'submitSurvey()':'endPractice()';
+const btnText=isMain?'다음으로 이동':'연습 완료 — 본 실험 시작';
+const top=isMain?'<div class="sticky-top"><div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div><div class="progress-text"><span id="prog-label">0 / 8 완료</span></div></div>':'';
+const tag=isMain?'<span id="s-tag">조건 1</span>':'Practice Trial';
+
+const SECTION_DESCS={
+  '시간 지각':'이 로딩을 기다리는 시간을 주관적으로 어떻게 인식했는지 평가해주세요.',
+  '지각된 속도 패턴':'로딩 진행 속도의 변화 패턴을 어떻게 체감했는지 평가해주세요.',
+  '진행 투명성':'로딩 상태가 얼마나 명확하게 전달되었는지 평가해주세요.',
+  '감정 반응':'기다리는 동안 느낀 감정을 평가해주세요.',
+  '주의 집중':'기다리는 동안 주의 상태를 평가해주세요.',
+  '전반적 평가':'이 로딩 방식에 대한 전반적인 평가를 해주세요.',
+  '행동 의도':'로딩을 보면서 든 행동 충동을 평가해주세요.'
+};
+const qs=[
+  ['시간 지각',        '1. 이 로딩 화면은 전체적으로 오래 기다린 것처럼 느껴졌습니다',  'q1','전혀 아니다','매우 그렇다'],
+  ['',                 '2. 실제로 몇 초 정도로 느껴졌는지 적어주세요',                  'time','',''],
+  ['',                 '3. 기다리는 동안 시간이 얼마나 빠르게 흘렀습니까?',             'q2','매우 느리게','매우 빠르게'],
+  ['지각된 속도 패턴', '4. 로딩 진행 속도의 변화는 어떻게 느껴졌습니까?',              'q3','초반 빠름 → 후반 느림','초반 느림 → 후반 빠름'],
+  ['진행 투명성',      '5. 로딩이 언제 끝날지 예측할 수 있었습니다',                    'q4','전혀 아니다','매우 그렇다'],
+  ['',                 '6. 로딩 진행 상황이 명확하게 전달되었습니다',                   'q5','전혀 아니다','매우 그렇다'],
+  ['감정 반응',        '7. 기다리는 동안 답답함을 느꼈습니다',                          'q6','전혀 아니다','매우 그렇다'],
+  ['주의 집중',        '8. 기다리는 동안 화면에 집중하게 되었습니다',                   'q7','전혀 아니다','매우 그렇다'],
+  ['전반적 평가',      '9. 전반적으로 이 로딩 방식은 만족스럽다고 느껴졌습니다',         'q8','전혀 아니다','매우 그렇다'],
+  ['행동 의도',        '10. 이 상황에서 앱을 종료하고 싶다는 생각이 들었습니다',          'q9','전혀 아니다','매우 그렇다'],
+];
+let body='',idx=1;
+qs.forEach(([sec,text,key,leftLabel,rightLabel])=>{
+  if(sec){body+=`<div class="section-label">${sec}</div>`;const desc=SECTION_DESCS[sec];if(desc)body+=`<div class="section-desc">${desc}</div>`}
+  if(key==='time'){
+    body+=`<div class="q-card"><div class="q-text">${text}</div><input class="number-input" type="number" id="${inputId}" placeholder="예: 12" inputmode="numeric"><div class="number-help">정확하지 않아도 괜찮습니다. 체감상 느껴진 시간을 숫자로 입력해주세요.</div></div>`;
+  }else{
+    const id=`${prefix}-${idx++}`;
+    body+=`<div class="q-card"><div class="q-text">${text}</div><div class="likert-row" id="${id}"></div><div class="likert-ends"><span>${leftLabel}</span><span>${rightLabel}</span></div></div>`;
+  }
+});
+return `${top}<div class="survey-container"><div class="survey-head"><div class="survey-kicker">${tag}</div><div class="survey-title">방금 본 로딩 화면을 평가해주세요</div><div class="survey-sub">모든 문항은 7점 척도로 응답합니다. 문항에 따라 양 끝의 의미가 다르므로 각 레이블을 확인해주세요.</div><div class="scale-guide"><div class="guide-item"><b>1점</b><br>왼쪽 끝에 가까움</div><div class="guide-item"><b>7점</b><br>오른쪽 끝에 가까움</div></div></div>${body}<div class="survey-actions"><button class="survey-btn" onclick="${action}">${btnText}</button></div></div>`;
+}
+
+function buildSurveyContainers(){
+  document.getElementById('s-practice-survey').innerHTML=surveyHTML('pl',false);
+  document.getElementById('s-survey').innerHTML=surveyHTML('ml',true);
+}
+
+function buildAllLikerts(){
+  const keys=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+  keys.forEach((key,i)=>{
+    buildLikert(`pl-${i+1}`,practiceAns,key);
+    buildLikert(`ml-${i+1}`,curAns,key);
+  });
+}
+
+function startExp(){
+  PID=document.getElementById('pid-input').value.trim();
+  if(!PID){alert('참가자 번호를 입력해주세요.');return}
+  ORDER=getOrder();
+  responses=[];
+  trialIdx=0;
+  completedApps=new Set();
+  practiceAns=ansObj();
+  curAns=ansObj();
+  buildSurveyContainers();
+  buildAllLikerts();
+  buildFinalGrids();
+  show('s-practice-attention');
+  setTimeout(runPracticeLoading,2500);
+}
+
+function runPracticeLoading(){
+  show('s-practice-loading');
+  if(activeLoader){activeLoader.stop();activeLoader=null}
+  const cv=makeCanvas('cv-practice');
+  activeLoader=new PracticeLoader(cv);
+  activeLoader.start(()=>show('s-practice-survey'));
+}
+
+function valid(store,timeId){
+  store.time=(document.getElementById(timeId)?.value||'').trim();
+  const keys=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+  return !keys.some(k=>store[k]===null||store[k]===undefined||store[k]==='')&&store.time!=='';
+}
+
+function endPractice(){
+  if(!valid(practiceAns,'ptime-input')){alert('모든 문항에 응답해주세요.');return}
+  trialIdx=0;
+  // 연습 완료 후 앱 목록으로
+  renderAppList();
+  show('s-applist');
+}
+
+function runLoading(){
+  const cond=CONDITIONS[ORDER[trialIdx]];
+  if(activeLoader){activeLoader.stop();activeLoader=null}
+  const cv=makeCanvas('cv-main');
+  activeLoader=new PLoader(cv,cond.wavy,cond.steps,cond.spin);
+  scheduleStatusChange();
+
+  activeLoader.start(()=>{
+    // 설치 완료 텍스트 1초 표시 후 설문으로
+    const statusEl=document.getElementById('loading-status');
+    if(statusEl) statusEl.textContent='설치 완료 ✓';
+    setTimeout(()=>{
+      curAns=ansObj();
+      const survey=document.getElementById('s-survey');
+      survey.innerHTML=surveyHTML('ml',true);
+      const keys=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+      keys.forEach((key,i)=>buildLikert(`ml-${i+1}`,curAns,key));
+      const fill=document.getElementById('prog-fill');
+      const label=document.getElementById('prog-label');
+      const tag=document.getElementById('s-tag');
+      if(fill) fill.style.width=((trialIdx+1)/8*100)+'%';
+      if(label) label.textContent=`${trialIdx+1} / 8 완료`;
+      if(tag) tag.textContent=`조건 ${trialIdx+1}`;
+      show('s-survey');
+    }, 1000);
+  });
+}
+
+function submitSurvey(){
+  const timeEl=document.getElementById('time-input');
+  curAns.time=timeEl?timeEl.value.trim():'';
+  const keys=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+  const missing=keys.some(k=>curAns[k]===null||curAns[k]===undefined||curAns[k]==='') || curAns.time==='';
+  if(missing){alert('모든 문항에 응답해주세요.');return}
+
+  const cond=CONDITIONS[ORDER[trialIdx]];
+  const app=APPS.find(a=>a.id===currentAppId)||{};
+
+  responses.push({
+    trialOrder:trialIdx+1,
+    conditionId:cond.id,
+    conditionDesc:cond.desc,
+    appId:app.id||'',
+    appName:app.name||'',
+    appDesc:app.desc||'',
+    perceivedDuration:curAns.q1,
+    timeEstimate:curAns.time,
+    speedPerception:curAns.q2,
+    speedPattern:curAns.q3,
+    progressPredictability:curAns.q4,
+    progressClarity:curAns.q5,
+    frustration:curAns.q6,
+    attention:curAns.q7,
+    satisfaction:curAns.q8,
+    exitIntent:curAns.q9
+  });
+
+  trialIdx++;
+
+  if(trialIdx>=8){
+    // 마지막 앱 완료 처리 후 최종 화면
+    completedApps.add(currentAppId);
+    show('s-final');
+  }else{
+    // 앱 목록으로 복귀
+    afterSurvey();
+  }
+}
+
+
+// ── 최종 그리드 (그리드별 독립 관리) ──────────────
+const miniPreviewMap={};
+
+function stopMiniPreviewsForGrid(gridId){
+  (miniPreviewMap[gridId]||[]).forEach(item=>{
+    if(item.loader) item.loader.stop();
+    if(item.timer) clearTimeout(item.timer);
+  });
+  miniPreviewMap[gridId]=[];
+}
+
+function stopMiniPreviews(){
+  Object.keys(miniPreviewMap).forEach(stopMiniPreviewsForGrid);
+}
+
+function startMiniPreviewsForGrid(gridId){
+  stopMiniPreviewsForGrid(gridId);
+  const g=document.getElementById(gridId);
+  if(!g) return;
+  g.querySelectorAll('.mini-loader').forEach(cv=>{
+    const id=Number(cv.dataset.cond);
+    const cond=CONDITIONS.find(c=>c.id===id);
+    if(!cond) return;
+    const dpr=window.devicePixelRatio||1;
+    const px=66;
+    cv.style.width=px+'px';cv.style.height=px+'px';
+    cv.width=Math.round(px*dpr);cv.height=Math.round(px*dpr);
+    const run=()=>{
+      const loader=new PLoader(cv,cond.wavy,cond.steps,cond.spin);
+      (miniPreviewMap[gridId]=miniPreviewMap[gridId]||[]).push({loader});
+      loader.start(()=>{
+        const timer=setTimeout(run,700);
+        (miniPreviewMap[gridId]=miniPreviewMap[gridId]||[]).push({timer});
+      });
+    };
+    run();
+  });
+}
+
+function buildFinalGrids(){
+  buildGrid('grid-shortest','shortest');
+  buildGrid('grid-preferred','preferred');
+}
+
+function buildGrid(gridId,type){
+  const g=document.getElementById(gridId);
+  g.innerHTML='';
+  CONDITIONS.forEach(cond=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='cond-btn';
+    const shape=cond.wavy?'구불 선':'기본 선';
+    const speed=cond.desc.includes('가속')?'가속형 (초반 빠름)':'감속형 (후반 빠름)';
+    const stage=cond.spin?'2단계 (진행+스피너)':'1단계 (진행)';
+    b.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <strong>${cond.label}</strong>
+        <button type="button" class="replay-btn" onclick="event.stopPropagation();openReplay(${cond.id-1})">▶ 다시 보기</button>
+      </div>
+      <div class="preview-wrap">
+        <canvas class="mini-loader" width="132" height="132" data-cond="${cond.id}" data-grid="${gridId}" style="width:66px;height:66px"></canvas>
+        <div class="preview-label">${shape} · ${speed}</div>
+        <div class="preview-time">${stage}</div>
+      </div>
+    `;
+    b.onclick=()=>{
+      g.querySelectorAll('.cond-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      if(type==='shortest') finalShortest=cond.id;
+      else finalPreferred=cond.id;
+    };
+    g.appendChild(b);
+  });
+}
+
+let replayLoader=null;
+function openReplay(condIdx){
+  const cond=CONDITIONS[condIdx];
+  const modal=document.getElementById('replay-modal');
+  const closeBtn=document.getElementById('replay-close-btn');
+  document.getElementById('replay-kicker').textContent=cond.label;
+  document.getElementById('replay-title').textContent=cond.desc;
+  document.getElementById('replay-sub').textContent='실험에서 본 것과 동일한 로딩을 재생합니다';
+  closeBtn.style.display='none';
+  const cv=document.getElementById('replay-canvas');
+  const dpr=window.devicePixelRatio||1;
+  const cs=Math.min(window.innerWidth,window.innerHeight)*.58;
+  cv.style.width=cs+'px';cv.style.height=cs+'px';
+  cv.width=Math.round(cs*dpr);cv.height=Math.round(cs*dpr);
+  if(replayLoader){replayLoader.stop();replayLoader=null;}
+  modal.classList.add('open');
+  replayLoader=new PLoader(cv,cond.wavy,cond.steps,cond.spin);
+  replayLoader.start(()=>{closeBtn.style.display='block';});
+}
+
+function closeReplay(){
+  if(replayLoader){replayLoader.stop();replayLoader=null;}
+  document.getElementById('replay-modal').classList.remove('open');
+}
+
+function submitFinal(){
+  if(!finalShortest){alert('가장 짧게 느껴진 조건을 선택해주세요.');return}
+  if(!finalPreferred){alert('가장 선호하는 조건을 선택해주세요.');return}
+  document.getElementById('done-pid').textContent=`참가자 번호: ${PID}`;
+  show('s-done');
+}
+
+// ─── Google Sheet 제출 (기존 코드 완전 유지) ───
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyR2nT4M1D46u6AiYQqgv3FD64qrYqlmXR-KlmuYLD_O0rzOwbN7nnVIL9502ULPHeeqg/exec';
+
+async function submitToSheet(){
+  const btn=document.getElementById('submit-btn');
+  const status=document.getElementById('submit-status');
+  const reason=(document.getElementById('reason-txt')?.value||'').trim();
+  btn.disabled=true;btn.textContent='전송 중…';status.textContent='';
+  const payload={
+    participant_id:PID,
+    order_used:ORDER.map(i=>i+1).join(','),
+    submitted_at:new Date().toISOString(),
+    final_shortest:finalShortest,
+    final_preferred:finalPreferred,
+    reason,
+    trials:responses.map(r=>({
+      trial_order:r.trialOrder,
+      condition_id:r.conditionId,
+      condition_desc:r.conditionDesc,
+      app_id:r.appId,
+      app_name:r.appName,
+      perceived_duration:r.perceivedDuration,
+      time_estimate:r.timeEstimate,
+      speed_perception:r.speedPerception,
+      speed_pattern:r.speedPattern,
+      progress_predictability:r.progressPredictability,
+      progress_clarity:r.progressClarity,
+      frustration:r.frustration,
+      attention:r.attention,
+      satisfaction:r.satisfaction,
+      exit_intent:r.exitIntent
+    }))
+  };
+  try{
+    await fetch(GAS_URL,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(payload)
+    });
+    btn.textContent='✓ 제출 완료';
+    btn.style.background='rgba(36,180,126,.4)';
+    btn.style.borderColor='rgba(36,180,126,.6)';
+    status.textContent='응답이 연구자에게 전달되었습니다. 감사합니다!';
+    status.style.color='#43e97b';
+  }catch{
+    btn.disabled=false;btn.textContent='응답 데이터 제출';
+    status.textContent='전송 실패 — 아래 CSV 저장 후 실험자에게 전달해주세요.';
+    status.style.color='#ff6b6b';
+  }
+}
+
+function downloadCSV(){
+  const reason=(document.getElementById('reason-txt')?.value||'').trim();
+  let csv='participant_id,trial_order,condition_id,condition_desc,app_id,app_name,perceived_duration,time_estimate,speed_perception,speed_pattern,progress_predictability,progress_clarity,frustration,attention,satisfaction,exit_intent\n';
+  responses.forEach(r=>{
+    csv+=`${PID},${r.trialOrder},${r.conditionId},"${r.conditionDesc}",${r.appId},"${r.appName}",${r.perceivedDuration},${r.timeEstimate},${r.speedPerception},${r.speedPattern},${r.progressPredictability},${r.progressClarity},${r.frustration},${r.attention},${r.satisfaction},${r.exitIntent}\n`;
+  });
+  csv+=`\npractice_q1,practice_q2,practice_q3,practice_q4,practice_q5,practice_q6,practice_q7,practice_q8,practice_q9,practice_time\n`;
+  csv+=`${practiceAns.q1},${practiceAns.q2},${practiceAns.q3},${practiceAns.q4},${practiceAns.q5},${practiceAns.q6},${practiceAns.q7},${practiceAns.q8},${practiceAns.q9},${practiceAns.time}\n`;
+  csv+=`\nfinal_shortest,final_preferred,reason\n${finalShortest},${finalPreferred},"${reason}"\n\norder_used\n${ORDER.map(i=>i+1).join(',')}\n`;
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`exp_p${PID}_${Date.now()}.csv`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+/* =========================================================
+   APP STORE TAB + DOWNLOAD SCREEN OVERRIDES
+========================================================= */
+
+function activateStoreTab(tabName){
+  document.querySelectorAll('.ios-tab').forEach(t=>t.classList.remove('active'));
+
+  if(tabName === 'apps'){
+    renderAppList();
+    show('s-applist');
+    const tabs=document.querySelectorAll('.ios-tab');
+    if(tabs[2]) tabs[2].classList.add('active');
+    return;
+  }
+
+  const screen=document.getElementById('s-applist');
+  const titles={
+    today:['투데이','오늘의 추천 앱과 스토리입니다.'],
+    games:['게임','새로운 게임과 인기 게임을 둘러보는 화면입니다.'],
+    search:['검색','앱 이름이나 카테고리를 검색하는 화면입니다.']
+  };
+  const icons={today:'🌐', games:'🎮', search:'🔍'};
+  const idx={today:0,games:1,search:3}[tabName];
+
+  if(screen){
+    show('s-applist');
+    const scroll=screen.querySelector('.applist-scroll');
+    if(scroll){
+      scroll.innerHTML=`
+        <div class="tab-content-panel">
+          <div class="tab-hero-card">
+            <div class="tab-hero-title">${titles[tabName][0]}</div>
+            <div class="tab-hero-sub">${titles[tabName][1]} 실험에서는 아래 탭 중 <b>앱</b> 탭에서 앱을 선택해 다운로드를 진행합니다.</div>
+          </div>
+          <div class="tab-card-grid">
+            <div class="tab-small-card">
+              <div class="tab-small-icon">${icons[tabName]}</div>
+              <div class="tab-small-title">${titles[tabName][0]} 둘러보기</div>
+              <div class="tab-small-desc">탭이 실제 앱처럼 반응하도록 만든 안내 화면입니다.</div>
+            </div>
+            <div class="tab-small-card" onclick="activateStoreTab('apps')" style="cursor:pointer">
+              <div class="tab-small-icon">📱</div>
+              <div class="tab-small-title">앱 다운로드하기</div>
+              <div class="tab-small-desc">여기를 누르면 실험용 앱 목록으로 돌아갑니다.</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    document.querySelectorAll('.ios-tab').forEach(t=>t.classList.remove('active'));
+    const tabs=document.querySelectorAll('.ios-tab');
+    if(tabs[idx]) tabs[idx].classList.add('active');
+  }
+}
+
+function bindStoreTabs(){
+  const tabs=document.querySelectorAll('.ios-tab');
+  if(tabs.length >= 4){
+    tabs[0].onclick=()=>activateStoreTab('today');
+    tabs[1].onclick=()=>activateStoreTab('games');
+    tabs[2].onclick=()=>activateStoreTab('apps');
+    tabs[3].onclick=()=>activateStoreTab('search');
+  }
+}
+
+const __oldRenderAppList = typeof renderAppList === 'function' ? renderAppList : null;
+if(__oldRenderAppList){
+  renderAppList = function(){
+    __oldRenderAppList();
+    setTimeout(bindStoreTabs, 0);
+  }
+}
+
+const __oldStartDownload = typeof startDownload === 'function' ? startDownload : null;
+if(__oldStartDownload){
+  startDownload = function(){
+    const app = APPS.find(a => a.id === currentAppId);
+    if(app){
+      const icon=document.getElementById('store-loading-icon-inner');
+      const name=document.getElementById('store-loading-name');
+      const sub=document.getElementById('store-loading-sub');
+      const state=document.getElementById('store-loading-state');
+      const rating=document.getElementById('store-rating');
+      const age=document.getElementById('store-age');
+      const rank=document.getElementById('store-rank');
+      const cat=document.getElementById('store-category');
+      const version=document.getElementById('store-version');
+      const previews=document.getElementById('store-preview-row');
+
+      if(icon){
+        icon.innerHTML = app.svg || '';
+        icon.style.background = `linear-gradient(145deg,${app.colors?.[0] || '#ff7a00'},${app.colors?.[1] || '#ffae42'})`;
+      }
+      if(name) name.textContent = app.name || '당근';
+      if(sub) sub.textContent = app.desc || '당신 근처의 지역 생활 커뮤니티';
+      if(state) state.textContent = '다운로드 중…';
+      if(rating) rating.textContent = app.rating || '3.9';
+      if(age) age.textContent = app.age || '12+';
+      if(rank) rank.textContent = app.rank || '#6';
+      if(cat) cat.textContent = app.category || '소셜 네트워킹';
+      if(version) version.textContent = app.version ? app.version.split('•')[0].trim() : '버전 26.17.0';
+
+      if(previews && app){
+        previews.innerHTML='';
+        getAppPreviews(app).forEach(html=>{
+          const card=document.createElement('div');
+          card.className='store-preview-card';
+          card.innerHTML=html;
+          previews.appendChild(card);
+        });
+      }
+    }
+
+    show('s-loading');
+
+    setTimeout(()=>{
+      const state=document.getElementById('store-loading-state');
+      if(state) state.textContent='설치 중…';
+    }, 7500);
+
+    runLoading();
+  }
+}
+
+/* 상세 화면 안에서도 '받기' 누르면 버튼 옆에 App Store식 로딩이 보이게 */
+const __oldSelectApp = typeof selectApp === 'function' ? selectApp : null;
+if(__oldSelectApp){
+  selectApp = function(appId){
+    __oldSelectApp(appId);
+    setTimeout(()=>{
+      const btn=document.getElementById('detail-get-btn');
+      if(btn && !document.getElementById('inline-store-loader')){
+        const wrap=document.createElement('div');
+        wrap.id='inline-store-loader';
+        wrap.className='store-inline-loader-wrap';
+        wrap.style.display='none';
+        wrap.innerHTML=`
+          <div class="store-inline-loader">
+            <svg viewBox="0 0 42 42">
+              <circle class="track" cx="21" cy="21" r="18"></circle>
+              <circle class="progress" cx="21" cy="21" r="18"></circle>
+            </svg>
+          </div>
+          <div class="store-inline-status">다운로드 중…</div>
+        `;
+        btn.parentNode.appendChild(wrap);
+      }
+    },0);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', bindStoreTabs);
+setTimeout(bindStoreTabs, 500);
+
+
+/* =========================================================
+   SEARCH TAB FLOW + PRACTICE LOADING OVERRIDE
+========================================================= */
+
+function renderSearchScreen(keyword=''){
+  show('s-applist');
+  document.querySelectorAll('.ios-tab').forEach(t=>t.classList.remove('active'));
+  const tabs=document.querySelectorAll('.ios-tab');
+  if(tabs[3]) tabs[3].classList.add('active');
+
+  const scroll=document.querySelector('#s-applist .applist-scroll');
+  if(!scroll) return;
+
+  const q = (keyword || '').trim();
+  const results = q
+    ? APPS.filter(app =>
+        app.name.includes(q) ||
+        app.desc.includes(q) ||
+        app.category.includes(q) ||
+        app.dev.includes(q)
+      )
+    : [];
+
+  scroll.innerHTML = `
+    <div class="search-panel">
+      <div class="search-title">검색</div>
+      <div class="search-box">
+        <span>🔍</span>
+        <input id="store-search-input" type="text" value="${q}" placeholder="앱 이름 또는 키워드 검색">
+      </div>
+
+      <div class="search-hint">
+        <div class="search-hint-title">실험 상황</div>
+        <div class="search-hint-text">
+          필요한 앱을 찾기 위해 App Store에서 검색하는 상황입니다.
+          검색어를 입력한 뒤 결과에서 앱을 선택하고 <b>받기</b>를 눌러주세요.
+        </div>
+        <div class="search-keyword-chip-row">
+          <button class="search-chip" onclick="renderSearchScreen('당근')">당근</button>
+          <button class="search-chip" onclick="renderSearchScreen('노트')">노트</button>
+          <button class="search-chip" onclick="renderSearchScreen('날씨')">날씨</button>
+          <button class="search-chip" onclick="renderSearchScreen('타이머')">타이머</button>
+        </div>
+      </div>
+
+      <div class="search-result-title">${q ? '검색 결과' : '추천 검색어를 눌러 앱을 찾아보세요'}</div>
+      <div class="search-result-list" id="search-result-list">
+        ${
+          q && results.length
+          ? results.map(app => `
+            <div class="app-row" onclick="selectApp(${app.id})">
+              <div class="app-icon-wrap">
+                <div class="app-icon-img" style="background:linear-gradient(145deg,${app.colors[0]},${app.colors[1]})">${app.svg}</div>
+              </div>
+              <div class="app-info">
+                <div class="app-name">${app.name}</div>
+                <div class="app-desc">${app.desc}</div>
+                <div class="app-rating"><span class="app-stars">★★★★★</span> ${app.rating} · ${app.category}</div>
+              </div>
+              <button class="app-get-btn" onclick="event.stopPropagation();selectApp(${app.id})">받기</button>
+            </div>
+          `).join('')
+          : `<div class="search-empty">${q ? '검색 결과가 없습니다.' : '예: 당근, 노트, 날씨, 타이머'}</div>`
+        }
+      </div>
+    </div>
+  `;
+
+  const input=document.getElementById('store-search-input');
+  if(input){
+    input.focus();
+    input.oninput = () => {
+      clearTimeout(window.__searchTimer);
+      window.__searchTimer = setTimeout(()=>renderSearchScreen(input.value), 220);
+    };
+    input.onkeydown = (e)=>{
+      if(e.key==='Enter') renderSearchScreen(input.value);
+    };
+  }
+}
+
+function activateStoreTab(tabName){
+  if(tabName === 'search'){
+    renderSearchScreen('');
+    return;
+  }
+
+  document.querySelectorAll('.ios-tab').forEach(t=>t.classList.remove('active'));
+
+  if(tabName === 'apps'){
+    renderAppList();
+    show('s-applist');
+    const tabs=document.querySelectorAll('.ios-tab');
+    if(tabs[2]) tabs[2].classList.add('active');
+    return;
+  }
+
+  const screen=document.getElementById('s-applist');
+  const titles={
+    today:['투데이','오늘의 추천 앱과 스토리입니다.'],
+    games:['게임','새로운 게임과 인기 게임을 둘러보는 화면입니다.']
+  };
+  const icons={today:'🌐', games:'🎮'};
+  const idx={today:0,games:1}[tabName];
+
+  if(screen){
+    show('s-applist');
+    const scroll=screen.querySelector('.applist-scroll');
+    if(scroll){
+      scroll.innerHTML=`
+        <div class="tab-content-panel">
+          <div class="tab-hero-card">
+            <div class="tab-hero-title">${titles[tabName][0]}</div>
+            <div class="tab-hero-sub">${titles[tabName][1]} 실험에서는 <b>검색</b> 탭에서 앱을 찾아 다운로드를 진행합니다.</div>
+          </div>
+          <div class="tab-card-grid">
+            <div class="tab-small-card" onclick="activateStoreTab('search')" style="cursor:pointer">
+              <div class="tab-small-icon">🔍</div>
+              <div class="tab-small-title">검색으로 앱 찾기</div>
+              <div class="tab-small-desc">여기를 누르면 검색 화면으로 이동합니다.</div>
+            </div>
+            <div class="tab-small-card" onclick="activateStoreTab('apps')" style="cursor:pointer">
+              <div class="tab-small-icon">📱</div>
+              <div class="tab-small-title">앱 목록 보기</div>
+              <div class="tab-small-desc">앱 목록 화면으로 돌아갑니다.</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    document.querySelectorAll('.ios-tab').forEach(t=>t.classList.remove('active'));
+    const tabs=document.querySelectorAll('.ios-tab');
+    if(tabs[idx]) tabs[idx].classList.add('active');
+  }
+}
+
+function bindStoreTabs(){
+  const tabs=document.querySelectorAll('.ios-tab');
+  if(tabs.length >= 4){
+    tabs[0].onclick=()=>activateStoreTab('today');
+    tabs[1].onclick=()=>activateStoreTab('games');
+    tabs[2].onclick=()=>activateStoreTab('apps');
+    tabs[3].onclick=()=>activateStoreTab('search');
+  }
+}
+
+/* 시작 후 본 실험은 앱 목록보다 검색 화면으로 유도 */
+const __oldEndPractice = typeof endPractice === 'function' ? endPractice : null;
+if(__oldEndPractice){
+  endPractice = function(){
+    if(!valid(practiceAns,'ptime-input')){alert('모든 문항에 응답해주세요.');return}
+    trialIdx=0;
+    renderAppList();
+    show('s-applist');
+    setTimeout(()=>renderSearchScreen('당근'), 350);
+  }
+}
+
+/* 연습 로딩도 실제 App Store 로딩처럼 보이되, 기존 15초 로직 유지 */
+const __oldRunPracticeLoading = typeof runPracticeLoading === 'function' ? runPracticeLoading : null;
+if(__oldRunPracticeLoading){
+  runPracticeLoading = function(){
+    show('s-practice-loading');
+    const state=document.getElementById('practice-store-state');
+    if(state) state.textContent='다운로드 중…';
+    setTimeout(()=>{
+      const st=document.getElementById('practice-store-state');
+      if(st) st.textContent='설치 중…';
+    },7500);
+
+    if(activeLoader){activeLoader.stop();activeLoader=null}
+    const cv=makeCanvas('cv-practice');
+    activeLoader=new PracticeLoader(cv);
+    activeLoader.start(()=>show('s-practice-survey'));
+  }
+}
+
+/* 실험 시작 화면 버튼 이후 연습은 유지 */
+setTimeout(bindStoreTabs, 300);
+
+
+/* =========================================================
+   FINAL FLOW OVERRIDE
+   지정 검색어 8개 → 검색 → 상세 → 다운로드 → 설문
+========================================================= */
+
+/* 실제 App Store 검색 흐름용 앱 데이터 */
+const FINAL_APPS = [
+  {
+    id:1, keyword:'당근', name:'당근', dev:'Danggeun Market Inc.', emoji:'🥕',
+    desc:'당신 근처의 지역 생활 커뮤니티',
+    category:'소셜 네트워킹', rating:'3.9', age:'12+', rank:'#6',
+    version:'버전 26.17.0 • 4일 전',
+    whatsnew:'소소한 버그 및 앱 사용성을 개선했어요.',
+    appDesc:'동네 이웃과 중고거래, 생활 정보, 지역 소식을 나눌 수 있는 지역 생활 커뮤니티 앱입니다.',
+    colors:['#ff8a00','#ffb35c'],
+    previewColors:[['#b7e5ff','#eef9ff'],['#ffffff','#f5f5f7'],['#ffdd8a','#ff8a00']]
+  },
+  {
+    id:2, keyword:'날씨', name:'오늘날씨', dev:'Weather Studio', emoji:'🌤️',
+    desc:'시간별 날씨와 미세먼지 알림',
+    category:'날씨', rating:'4.6', age:'4+', rank:'#12',
+    version:'버전 5.2.1 • 2일 전',
+    whatsnew:'시간별 예보 화면과 알림 안정성을 개선했어요.',
+    appDesc:'현재 위치 기반 날씨, 시간별 예보, 주간 예보, 미세먼지 정보를 한 번에 확인할 수 있는 앱입니다.',
+    colors:['#4facfe','#00f2fe'],
+    previewColors:[['#4facfe','#00f2fe'],['#43e97b','#38f9d7'],['#fa709a','#fee140']]
+  },
+  {
+    id:3, keyword:'메모', name:'포켓 메모', dev:'Pocket Apps', emoji:'📝',
+    desc:'빠르게 기록하는 심플 메모 앱',
+    category:'생산성', rating:'4.8', age:'4+', rank:'#8',
+    version:'버전 3.4.0 • 1주 전',
+    whatsnew:'검색 속도와 폴더 정리 기능을 개선했어요.',
+    appDesc:'아이디어, 할 일, 수업 내용을 빠르게 기록하고 태그와 폴더로 정리할 수 있는 메모 앱입니다.',
+    colors:['#667eea','#764ba2'],
+    previewColors:[['#667eea','#764ba2'],['#f093fb','#f5576c'],['#4facfe','#00f2fe']]
+  },
+  {
+    id:4, keyword:'타이머', name:'집중 타이머', dev:'Focus Labs', emoji:'⏱️',
+    desc:'집중 시간을 관리하는 포모도로 타이머',
+    category:'생산성', rating:'4.9', age:'4+', rank:'#3',
+    version:'버전 2.1.0 • 오늘',
+    whatsnew:'집중 기록 통계와 알림음을 추가했어요.',
+    appDesc:'공부와 업무 집중을 위해 포모도로 타이머, 휴식 알림, 집중 통계를 제공합니다.',
+    colors:['#ffecd2','#fcb69f'],
+    previewColors:[['#ffecd2','#fcb69f'],['#a8edea','#fed6e3'],['#4facfe','#00f2fe']]
+  },
+  {
+    id:5, keyword:'운동', name:'오늘의 운동', dev:'FitLife Studio', emoji:'💪',
+    desc:'홈트레이닝 맞춤 운동 플랜',
+    category:'건강 및 피트니스', rating:'4.7', age:'4+', rank:'#10',
+    version:'버전 6.1.2 • 3일 전',
+    whatsnew:'초보자 루틴과 스트레칭 영상을 추가했어요.',
+    appDesc:'집에서도 쉽게 따라 할 수 있는 운동 루틴과 개인별 목표에 맞춘 트레이닝 플랜을 제공합니다.',
+    colors:['#ff6b6b','#ee5a24'],
+    previewColors:[['#ff6b6b','#ee5a24'],['#43e97b','#38f9d7'],['#fa709a','#fee140']]
+  },
+  {
+    id:6, keyword:'가계부', name:'가계부 라이트', dev:'MoneyFlow Inc.', emoji:'💰',
+    desc:'간편 지출 기록과 예산 관리',
+    category:'금융', rating:'4.5', age:'4+', rank:'#14',
+    version:'버전 3.7.1 • 5일 전',
+    whatsnew:'월별 예산 화면과 지출 그래프를 개선했어요.',
+    appDesc:'매일의 소비를 기록하고 월별 예산, 카테고리별 지출, 소비 패턴을 확인할 수 있습니다.',
+    colors:['#a8edea','#fed6e3'],
+    previewColors:[['#a8edea','#fed6e3'],['#667eea','#764ba2'],['#f093fb','#f5576c']]
+  },
+  {
+    id:7, keyword:'번역', name:'미니 번역기', dev:'LangTech Co.', emoji:'🌍',
+    desc:'텍스트와 음성을 빠르게 번역',
+    category:'유틸리티', rating:'4.6', age:'4+', rank:'#18',
+    version:'버전 4.3.0 • 6일 전',
+    whatsnew:'음성 인식 정확도와 카메라 번역 성능을 개선했어요.',
+    appDesc:'텍스트, 음성, 카메라 번역을 지원하여 여행이나 학습 상황에서 빠르게 사용할 수 있습니다.',
+    colors:['#f093fb','#f5576c'],
+    previewColors:[['#f093fb','#f5576c'],['#4facfe','#00f2fe'],['#43e97b','#38f9d7']]
+  },
+  {
+    id:8, keyword:'사진', name:'사진 정리함', dev:'Gallery Works', emoji:'🖼️',
+    desc:'AI로 사진을 자동 정리',
+    category:'사진 및 비디오', rating:'4.4', age:'4+', rank:'#22',
+    version:'버전 1.9.5 • 1주 전',
+    whatsnew:'중복 사진 탐지와 앨범 추천 기능을 개선했어요.',
+    appDesc:'AI가 사진을 자동으로 분류하고 중복 사진을 찾아 정리해주는 스마트 앨범 앱입니다.',
+    colors:['#fa709a','#fee140'],
+    previewColors:[['#fa709a','#fee140'],['#667eea','#764ba2'],['#4facfe','#00f2fe']]
+  }
+];
+
+function getCurrentTargetApp(){
+  return FINAL_APPS[trialIdx % FINAL_APPS.length];
+}
+
+function normalizeKo(s){
+  return String(s||'').replace(/\s+/g,'').toLowerCase();
+}
+
+function renderFinalSearchScreen(prefill=''){
+  const target = getCurrentTargetApp();
+  show('s-applist');
+
+  document.querySelectorAll('.ios-tab').forEach(t=>t.classList.remove('active'));
+  const tabs=document.querySelectorAll('.ios-tab');
+  if(tabs[3]) tabs[3].classList.add('active');
+
+  const headerTitle = document.querySelector('.applist-title');
+  const headerSub = document.querySelector('.applist-subtitle');
+  const progressText = document.getElementById('applist-progress-text');
+  const progressFill = document.getElementById('applist-progress-fill');
+
+  if(headerTitle) headerTitle.textContent='검색';
+  if(headerSub) headerSub.textContent='App Store에서 앱 찾기';
+  if(progressText) progressText.textContent=`${trialIdx+1} / 8번째 앱 다운로드`;
+  if(progressFill) progressFill.style.width=(trialIdx/8*100)+'%';
+
+  const scroll=document.querySelector('#s-applist .applist-scroll');
+  if(!scroll) return;
+
+  const q = String(prefill||'');
+  const match = normalizeKo(q).length > 0 && normalizeKo(target.keyword).includes(normalizeKo(q)) || normalizeKo(q).includes(normalizeKo(target.keyword));
+  const showResult = normalizeKo(q).length > 0 && (match || normalizeKo(target.name).includes(normalizeKo(q)));
+
+  scroll.innerHTML=`
+    <div class="search-panel final-search">
+      <div class="search-guide-card">
+        <div class="search-progress-pill">DOWNLOAD ${trialIdx+1} / 8</div>
+        <div class="search-target-title">App Store에서 아래 앱을 검색해 다운로드해주세요.</div>
+        <div class="search-target-word">검색어: ${target.keyword}</div>
+        <div class="search-target-desc">
+          실제 앱을 찾는 상황처럼 검색창에 <b>${target.keyword}</b>을 직접 입력한 뒤,
+          검색 결과에서 앱을 선택하고 <b>받기</b> 버튼을 눌러주세요.
+        </div>
+      </div>
+
+      <div class="search-box final-search-box">
+        <span>🔍</span>
+        <input id="final-search-input" type="text" value="${q}" placeholder="${target.keyword} 검색">
+      </div>
+
+      <div class="search-result-title">${q ? '검색 결과' : '검색어를 입력해주세요'}</div>
+      <div class="search-result-list final-results">
+        ${
+          showResult
+          ? `
+            <div class="app-row" onclick="selectFinalApp(${target.id})">
+              <div class="app-icon-wrap">
+                <div class="app-icon-img" style="background:linear-gradient(135deg,${target.colors[0]},${target.colors[1]})">${target.emoji}</div>
+              </div>
+              <div class="app-info">
+                <div class="app-name">${target.name}</div>
+                <div class="app-desc">${target.desc}</div>
+                <div class="app-rating"><span class="app-stars">★★★★★</span> ${target.rating} · ${target.category}</div>
+              </div>
+              <button class="app-get-btn result-get" onclick="event.stopPropagation();selectFinalApp(${target.id})">받기</button>
+            </div>
+          `
+          : `
+            <div class="search-empty strong">
+              ${q ? `검색 결과가 없습니다.<br><b>${target.keyword}</b>을 정확히 입력해주세요.` : `검색창에 <b>${target.keyword}</b>을 입력하면 앱이 표시됩니다.`}
+            </div>
+          `
+        }
+      </div>
+    </div>
+  `;
+
+  const input=document.getElementById('final-search-input');
+  if(input){
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+    input.oninput=()=>{
+      clearTimeout(window.__finalSearchTimer);
+      const val=input.value;
+      window.__finalSearchTimer=setTimeout(()=>renderFinalSearchScreen(val),180);
+    };
+    input.onkeydown=(e)=>{
+      if(e.key==='Enter') renderFinalSearchScreen(input.value);
+    };
+  }
+}
+
+function fillFinalAppDetail(app){
+  currentAppId = app.id;
+
+  const icon=document.getElementById('detail-icon-img');
+  const name=document.getElementById('detail-app-name');
+  const dev=document.getElementById('detail-dev');
+  const rating=document.getElementById('detail-rating');
+  const age=document.getElementById('detail-age');
+  const rank=document.getElementById('detail-rank');
+  const cat=document.getElementById('detail-cat');
+  const whats=document.getElementById('detail-whatsnew');
+  const version=document.getElementById('detail-version');
+  const desc=document.getElementById('detail-description');
+  const btn=document.getElementById('detail-get-btn');
+
+  if(icon){
+    icon.innerHTML=app.svg||'';
+    icon.style.background=`linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`;
+  }
+  if(name) name.textContent=app.name;
+  if(dev) dev.textContent=app.desc;
+  if(rating) rating.textContent=app.rating;
+  if(age) age.textContent=app.age;
+  if(rank) rank.textContent=app.rank;
+  if(cat) cat.textContent=app.category;
+  if(whats) whats.textContent=app.whatsnew;
+  if(version) version.textContent=app.version;
+  if(desc) desc.textContent=app.appDesc;
+  if(btn){
+    btn.textContent='받기';
+    btn.onclick=startFinalDownload;
+    btn.style.display='inline-flex';
+    btn.classList.remove('downloading');
+  }
+
+  const previewRow=document.getElementById('detail-preview-row');
+  if(previewRow){
+    previewRow.innerHTML='';
+    app.previewColors.forEach((pair,i)=>{
+      const card=document.createElement('div');
+      card.className='detail-preview-card';
+      card.style.background=`linear-gradient(160deg,${pair[0]},${pair[1]})`;
+      card.style.display='flex';
+      card.style.alignItems='center';
+      card.style.justifyContent='center';
+      card.style.color=i===0?'#fff':'#1c1c1e';
+      card.style.fontWeight='900';
+      card.style.fontSize='18px';
+      card.style.textAlign='center';
+      card.innerHTML=i===0?`${app.name}<br><span style="font-size:12px;opacity:.85">${app.desc}</span>`:'앱 화면<br>미리 보기';
+      previewRow.appendChild(card);
+    });
+  }
+}
+
+function selectFinalApp(appId){
+  const app = FINAL_APPS.find(a=>a.id===appId) || getCurrentTargetApp();
+  fillFinalAppDetail(app);
+  show('s-appdetail');
+}
+
+function startFinalDownload(){
+  const app = FINAL_APPS.find(a=>a.id===currentAppId) || getCurrentTargetApp();
+
+  const icon=document.getElementById('store-loading-icon-inner');
+  const name=document.getElementById('store-loading-name');
+  const sub=document.getElementById('store-loading-sub');
+  const state=document.getElementById('store-loading-state');
+  const rating=document.getElementById('store-rating');
+  const age=document.getElementById('store-age');
+  const rank=document.getElementById('store-rank');
+  const cat=document.getElementById('store-category');
+  const version=document.getElementById('store-version');
+  const previews=document.getElementById('store-preview-row');
+
+  if(icon){
+    icon.innerHTML=app.svg||'';
+    icon.style.background=`linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`;
+  }
+  if(name) name.textContent=app.name;
+  if(sub) sub.textContent=app.desc;
+  if(state) state.textContent='다운로드 중…';
+  if(rating) rating.textContent=app.rating;
+  if(age) age.textContent=app.age;
+  if(rank) rank.textContent=app.rank;
+  if(cat) cat.textContent=app.category;
+  if(version) version.textContent=app.version.split('•')[0].trim();
+
+  if(previews){
+    previews.innerHTML='';
+    app.previewColors.forEach((pair,i)=>{
+      const card=document.createElement('div');
+      card.className='store-preview-card';
+      card.style.background=`linear-gradient(160deg,${pair[0]},${pair[1]})`;
+      card.style.color=i===0?'#fff':'#111';
+      card.innerHTML=i===0?`${app.name}<br><span style="font-size:14px;opacity:.85">${app.desc}</span>`:'앱 화면<br>미리 보기';
+      previews.appendChild(card);
+    });
+  }
+
+  show('s-loading');
+
+  setTimeout(()=>{
+    const st=document.getElementById('store-loading-state');
+    if(st) st.textContent='설치 중…';
+  },7500);
+
+  runLoading();
+}
+
+/* 탭 눌러도 막히지 않게: 모든 탭에서 검색으로 돌아올 수 있게 구성 */
+function activateFinalTab(tabName){
+  document.querySelectorAll('.ios-tab').forEach(t=>t.classList.remove('active'));
+  const tabs=document.querySelectorAll('.ios-tab');
+  const idx={today:0,games:1,apps:2,search:3}[tabName];
+  if(tabs[idx]) tabs[idx].classList.add('active');
+
+  if(tabName==='search'){
+    renderFinalSearchScreen('');
+    return;
+  }
+
+  if(tabName==='apps'){
+    renderFinalSearchScreen('');
+    return;
+  }
+
+  show('s-applist');
+  const headerTitle = document.querySelector('.applist-title');
+  const headerSub = document.querySelector('.applist-subtitle');
+  if(headerTitle) headerTitle.textContent = tabName==='today'?'투데이':'게임';
+  if(headerSub) headerSub.textContent = tabName==='today'?'오늘의 추천':'인기 게임';
+
+  const scroll=document.querySelector('#s-applist .applist-scroll');
+  if(scroll){
+    scroll.innerHTML=`
+      <div class="store-real-panel">
+        <div class="store-real-title">${tabName==='today'?'투데이':'게임'}</div>
+        <div class="store-real-sub">실제 App Store처럼 탭이 반응하는 화면입니다.</div>
+        <div class="store-real-card">
+          <div class="store-real-card-title">앱 다운로드 실험 진행 안내</div>
+          <div class="store-real-card-text">
+            현재 실험에서는 검색 탭에서 지정된 검색어를 입력하여 앱을 찾고 다운로드합니다.
+            아래 버튼을 누르면 현재 시행의 검색 화면으로 돌아갑니다.
+          </div>
+          <button class="store-real-primary" onclick="renderFinalSearchScreen('')">검색 화면으로 돌아가기</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function bindFinalTabs(){
+  const tabs=document.querySelectorAll('.ios-tab');
+  if(tabs.length>=4){
+    tabs[0].onclick=()=>activateFinalTab('today');
+    tabs[1].onclick=()=>activateFinalTab('games');
+    tabs[2].onclick=()=>activateFinalTab('apps');
+    tabs[3].onclick=()=>activateFinalTab('search');
+  }
+}
+
+/* 연습 끝나면 첫 검색어부터 시작 */
+endPractice = function(){
+  if(!valid(practiceAns,'ptime-input')){alert('모든 문항에 응답해주세요.');return}
+  trialIdx=0;
+  renderFinalSearchScreen('');
+  setTimeout(bindFinalTabs,100);
+}
+
+/* 설문 제출 후 다음 지정 검색어로 이동 */
+submitSurvey = function(){
+  const timeEl=document.getElementById('time-input');
+  curAns.time=timeEl ? timeEl.value.trim() : '';
+
+  const keys=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+  const missing=keys.some(k=>curAns[k]===null || curAns[k]===undefined || curAns[k]==='') || curAns.time==='';
+
+  if(missing){
+    alert('모든 문항에 응답해주세요.');
+    return;
+  }
+
+  const cond=CONDITIONS[ORDER[trialIdx]];
+  const app=FINAL_APPS.find(a=>a.id===currentAppId) || getCurrentTargetApp();
+
+  responses.push({
+    trialOrder:trialIdx+1,
+    conditionId:cond.id,
+    conditionDesc:cond.desc,
+    appId:app.id,
+    appName:app.name,
+    appKeyword:app.keyword,
+    perceivedDuration:curAns.q1,
+    timeEstimate:curAns.time,
+    speedPerception:curAns.q2,
+    speedPattern:curAns.q3,
+    progressPredictability:curAns.q4,
+    progressClarity:curAns.q5,
+    frustration:curAns.q6,
+    attention:curAns.q7,
+    satisfaction:curAns.q8,
+    exitIntent:curAns.q9
+  });
+
+  trialIdx++;
+
+  if(trialIdx>=8){
+    buildFinalGrids();
+    show('s-final');
+    setTimeout(startMiniPreviews,120);
+  }else{
+    curAns=ansObj();
+    renderFinalSearchScreen('');
+    setTimeout(bindFinalTabs,100);
+  }
+}
+
+/* runLoading 끝나면 설문으로 이동하는 기존 로직은 유지하되, 상태 초기화 보강 */
+const __finalOldRunLoading = runLoading;
+runLoading = function(){
+  __finalOldRunLoading();
+}
+
+/* Google Sheet payload에 app 정보도 포함되도록 보강 */
+const __oldSubmitToSheet = submitToSheet;
+submitToSheet = async function(){
+  const btn=document.getElementById('submit-btn');
+  const status=document.getElementById('submit-status');
+  const reason=(document.getElementById('reason-txt')?.value||'').trim();
+
+  btn.disabled=true;btn.textContent='전송 중…';status.textContent='';
+
+  const payload={
+    participant_id:PID,
+    order_used:ORDER.map(i=>i+1).join(','),
+    submitted_at:new Date().toISOString(),
+    final_shortest:finalShortest,
+    final_preferred:finalPreferred,
+    reason,
+    trials:responses.map(r=>({
+      trial_order:r.trialOrder,
+      condition_id:r.conditionId,
+      condition_desc:r.conditionDesc,
+      app_id:r.appId || '',
+      app_name:r.appName || '',
+      app_keyword:r.appKeyword || '',
+      perceived_duration:r.perceivedDuration,
+      time_estimate:r.timeEstimate,
+      speed_perception:r.speedPerception,
+      speed_pattern:r.speedPattern,
+      progress_predictability:r.progressPredictability,
+      progress_clarity:r.progressClarity,
+      frustration:r.frustration,
+      attention:r.attention,
+      satisfaction:r.satisfaction,
+      exit_intent:r.exitIntent
+    }))
+  };
+
+  try{
+    await fetch(GAS_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(payload)
+    });
+    btn.textContent='✓ 제출 완료';
+    btn.style.background='rgba(36,180,126,.25)';
+    btn.style.borderColor='rgba(36,180,126,.4)';
+    status.textContent='응답이 연구자에게 전달되었습니다. 감사합니다!';
+    status.style.color='#24b47e';
+  }catch{
+    btn.disabled=false;btn.textContent='응답 데이터 제출';
+    status.textContent='전송 실패 — 아래 CSV 저장 후 실험자에게 전달해주세요.';
+    status.style.color='#f04438';
+  }
+}
+
+setTimeout(bindFinalTabs,500);
+
+</script>
+
+<script id="photo-final-js">
+const FIXED_ORDER_APPS=[
+ {keyword:'당근',name:'당근',emoji:'🥕',desc:'당신 근처의 지역 생활 커뮤니티',category:'소셜 네트워킹',rating:'3.9',age:'12+',rank:'#6',colors:['#ff8a00','#ffb35c'],version:'버전 26.17.0 • 4일 전',whatsnew:'소소한 버그 및 앱 사용성을 개선했어요.',appDesc:'동네 이웃과 중고거래, 생활 정보, 지역 소식을 나눌 수 있는 지역 생활 커뮤니티 앱입니다.',previewColors:[['#b7e5ff','#eef9ff'],['#fff','#f5f5f7']]},
+ {keyword:'고양이와 스프',name:'고양이와 스프: 마법의 레시피',emoji:'🐱',desc:'환상적인 머징의 세계로 떠나라냥!',category:'게임',rating:'4.8',age:'4+',rank:'#3',colors:['#ffd27a','#ff9d3d'],version:'버전 1.8.0 • 2일 전',whatsnew:'신규 이벤트와 사용성을 개선했어요.',appDesc:'귀엽고 귀여운 고양이와 스프 시리즈를 즐겨보세요.',previewColors:[['#536b96','#d6c0ef'],['#ffd27a','#ff9d3d']]},
+ {keyword:'BLACKPINK',name:'BLACKPINK 팬을 위한 필수 앱',emoji:'🖤',desc:'최신 앨범부터 게임까지 만나보세요',category:'엔터테인먼트',rating:'4.6',age:'12+',rank:'#9',colors:['#4b0b53','#c01369'],version:'버전 4.1.0 • 5일 전',whatsnew:'팬 콘텐츠와 알림 기능을 개선했어요.',appDesc:'팬을 위한 콘텐츠와 최신 소식을 제공합니다.',previewColors:[['#4b0b53','#c01369'],['#111','#555']]},
+ {keyword:'Gemini',name:'Google Gemini',emoji:'✦',desc:'Google에서 제공하는 AI 어시스턴트',category:'생산성',rating:'4.7',age:'4+',rank:'#4',colors:['#e9eef8','#ffffff'],version:'버전 2.0.2 • 1일 전',whatsnew:'응답 속도를 개선했어요.',appDesc:'AI 어시스턴트로 글쓰기와 아이디어 정리를 도와줍니다.',previewColors:[['#d4dcff','#f6f6f6'],['#a7c7ff','#fff']]},
+ {keyword:'Instagram',name:'Instagram',emoji:'📷',desc:'사진 및 비디오',category:'사진 및 비디오',rating:'4.5',age:'12+',rank:'#2',colors:['#feda75','#d62976'],version:'버전 360.0 • 3일 전',whatsnew:'스토리와 릴스 경험을 개선했어요.',appDesc:'친구와 사진, 동영상, 스토리를 공유하세요.',previewColors:[['#feda75','#d62976'],['#4f5bd5','#fff']]},
+ {keyword:'SNOW',name:'SNOW 스노우 - AI 프로필 & 고화질 카메라',emoji:'⚡',desc:'AI스타일, AI증명사진, AI헤어샵',category:'사진 및 비디오',rating:'4.6',age:'4+',rank:'#11',colors:['#9be7ff','#5bd8f2'],version:'버전 13.2.1 • 1주 전',whatsnew:'AI 카메라 기능을 개선했어요.',appDesc:'다양한 필터와 AI 기능을 제공하는 카메라 앱입니다.',previewColors:[['#9be7ff','#ffffff'],['#d6f7ff','#fff']]},
+ {keyword:'Duolingo',name:'듀오링고(Duolingo): 언어 학습',emoji:'🦉',desc:'영어, 스페인어, 프랑스어를 배워보세요.',category:'교육',rating:'4.8',age:'4+',rank:'#1',colors:['#7ed321','#58c70a'],version:'버전 7.11.0 • 2일 전',whatsnew:'학습 문제를 개선했어요.',appDesc:'짧고 재미있는 레슨으로 언어를 학습할 수 있습니다.',previewColors:[['#7ed321','#d7ff8a'],['#fff','#7ed321']]},
+ {keyword:'FC 모바일',name:'FC 모바일',emoji:'⚽',desc:'언제 어디서나 FC 모바일!',category:'게임',rating:'4.3',age:'4+',rank:'#7',colors:['#1e3a8a','#111827'],version:'버전 12.0.1 • 4일 전',whatsnew:'경기 안정성을 개선했어요.',appDesc:'모바일에서 즐기는 축구 게임입니다.',previewColors:[['#1e3a8a','#111827'],['#2563eb','#0f172a']]}
+];
+function normalizeKo(s){return String(s||'').replace(/\\s+/g,'').toLowerCase()}
+function currentFixedApp(){return FIXED_ORDER_APPS[trialIdx%8]}
+function conditionForTrial(){return CONDITIONS[trialIdx%8]}
+function activeTab(i){document.querySelectorAll('.ios-tab').forEach(x=>x.classList.remove('active'));let t=document.querySelectorAll('.ios-tab')[i];if(t)t.classList.add('active')}
+function photoRow(app,idx=null,button='받기',ad=false){return `<div class="photo-app-row" ${idx===null?'':`onclick="selectFixedApp(${idx})"`}><div class="photo-app-icon" style="background:linear-gradient(145deg,${app.colors?.[0]||'#eee'},${app.colors?.[1]||'#ddd'})">${app.svg||''}</div><div class="photo-app-info"><div class="photo-app-name">${app.name}</div><div class="photo-app-desc">${ad?'<span class="photo-ad-badge">광고</span> ':''}${app.desc}</div></div><button class="photo-download-btn" ${idx===null?'':`onclick="event.stopPropagation();selectFixedApp(${idx})"`}>${button}</button></div>`}
+function renderTodayPhoto(){show('s-applist');activeTab(0);let s=document.querySelector('#s-applist .applist-scroll');const featured=currentFixedApp()||FIXED_ORDER_APPS[trialIdx]||FIXED_ORDER_APPS[0];s.innerHTML=`<div class="store-photo-page"><div class="store-photo-top"><div class="store-photo-title">투데이</div><div class="store-user-badge">유빈</div></div>
+<div class="today-hero-card" onclick="selectFixedApp(${FIXED_ORDER_APPS.indexOf(featured)})">
+  <div style="position:absolute;inset:0;background:linear-gradient(145deg,${featured.colors[0]},${featured.colors[1]})"></div>
+  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.12">
+    <svg width="280" height="280" viewBox="0 0 60 60" fill="white">${(featured.svg||'').replace(/<svg[^>]*>/,'').replace('</svg>','')}</svg>
+  </div>
+  <div class="today-hero-overlay"></div>
+  <div class="today-hero-copy">
+    <div class="today-kicker">오늘의 앱</div>
+    <div class="today-main">${featured.name}</div>
+    <div class="today-sub">${featured.desc}</div>
+  </div>
+  <div class="today-download-row">
+    <div style="width:44px;height:44px;border-radius:11px;overflow:hidden;flex-shrink:0;background:linear-gradient(145deg,${featured.colors[0]},${featured.colors[1]});display:flex;align-items:center;justify-content:center">${featured.svg||''}</div>
+    <div class="today-mini-info"><div class="today-mini-name">${featured.name}</div><div class="today-mini-desc">${featured.dev}</div></div>
+    <button class="photo-get" onclick="event.stopPropagation();selectFixedApp(${FIXED_ORDER_APPS.indexOf(featured)})">받기</button>
+  </div>
+</div>
+<div style="display:flex;gap:12px;margin-bottom:16px">
+  ${FIXED_ORDER_APPS.slice(0,2).map((a,i)=>`
+  <div onclick="selectFixedApp(${i})" style="flex:1;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);cursor:pointer">
+    <div style="height:120px;background:linear-gradient(145deg,${a.colors[0]},${a.colors[1]});display:flex;align-items:center;justify-content:center">
+      <svg width="60" height="60" viewBox="0 0 60 60">${(a.svg||'').replace(/<svg[^>]*>/,'').replace('</svg>','')}</svg>
+    </div>
+    <div style="padding:12px">
+      <div style="font-size:11px;color:#8e8e93;font-weight:600;text-transform:uppercase;letter-spacing:.04em">생산성</div>
+      <div style="font-size:14px;font-weight:700;color:#1c1c1e;margin-top:2px">${a.name}</div>
+    </div>
+  </div>`).join('')}
+</div>
+<div style="font-size:21px;font-weight:800;color:#1c1c1e;margin-bottom:10px;letter-spacing:-.03em">이번 주 추천 앱 ›</div>
+${FIXED_ORDER_APPS.map((a,i)=>photoRow(a,i,'받기')).join('')}
+`}
+function renderGamesPhoto(){show('s-applist');activeTab(1);let s=document.querySelector('#s-applist .applist-scroll');s.innerHTML=`<div class="store-photo-page"><div class="store-photo-top"><div class="store-photo-title">게임</div><div class="store-user-badge">유빈</div></div><div class="chip-row"><button class="game-chip">🛝 캐주얼</button><button class="game-chip">☠️ 어드벤처</button><button class="game-chip">♞ 보드</button><button class="game-chip">▣ 단어</button></div><div class="photo-section-kicker">새로운 게임</div><div class="photo-section-title">고양이와 스프: 마법의 레시피</div><div class="photo-section-sub">환상적인 머징의 세계로 떠나라냥!</div><div class="game-feature-card" onclick="selectFixedApp(1)"><div class="game-feature-bottom"><div class="today-mini-icon">🐱</div><div class="today-mini-info"><div class="today-mini-name">고양이와 스프: 마법의 레시피</div><div class="today-mini-desc">'고양이와 스프' 공식 후속작!</div></div><button class="photo-get">받기</button></div></div><div class="app-list-section"><div class="app-list-title">오늘은 이 게임 ›</div>${photoRow(FIXED_ORDER_APPS[7],7)}${photoRow({name:'마비노기 모바일',desc:'신념의 깃발, 신규 클래스 기사 등장',emoji:'⚔️',colors:['#111','#f59e0b']},null)}${photoRow({name:'2026 프로야구GO!',desc:'야구 팬을 위한 모바일 게임',emoji:'⚾',colors:['#0ea5e9','#1d4ed8']},null)}</div></div>`}
+function renderAppsPhoto(){show('s-applist');activeTab(2);let s=document.querySelector('#s-applist .applist-scroll');s.innerHTML=`<div class="store-photo-page"><div class="store-photo-top"><div class="store-photo-title">앱</div><div class="store-user-badge">유빈</div></div><div class="chip-row"><button class="game-chip">🍿 엔터테인먼트</button><button class="game-chip">📷 사진 및 비디오</button><button class="game-chip">✈️ 생산성</button></div><div class="photo-section-kicker">요즘 화제</div><div class="photo-section-title">BLACKPINK 팬을 위한 필수 앱</div><div class="photo-section-sub">최신 앨범부터 게임까지 만나보세요</div><div class="app-big-feature" onclick="selectFixedApp(2)">BLACKPINK<br>FAN APP</div><div class="app-list-section"><div class="app-list-title">iPhone 필수 앱 ›</div>${photoRow(FIXED_ORDER_APPS[0],0,'열기')}${photoRow({name:'토스',desc:'금융이 쉬워진다',emoji:'💙',colors:['#2563eb','#60a5fa']},null,'업데이트')}${photoRow({name:'TikTok 틱톡',desc:'15초만에 사로잡는 재미있는 영상',emoji:'🎵',colors:['#111','#333']},null,'☁️')}</div><div class="app-list-section"><div class="app-list-title">추천 앱과 게임 ›</div>${photoRow(FIXED_ORDER_APPS[4],4,'열기',true)}${photoRow(FIXED_ORDER_APPS[5],5,'☁️')}${photoRow(FIXED_ORDER_APPS[6],6,'☁️')}</div></div>`}
+function renderSearchPhoto(q=''){show('s-applist');activeTab(3);let target=currentFixedApp(),match=normalizeKo(q)&& (normalizeKo(target.keyword).includes(normalizeKo(q))||normalizeKo(q).includes(normalizeKo(target.keyword))||normalizeKo(target.name).includes(normalizeKo(q)));let s=document.querySelector('#s-applist .applist-scroll');s.innerHTML=`<div class="search-photo-page"><div class="store-photo-top"><div class="search-photo-title">검색</div><div class="store-user-badge">유빈</div></div><div class="real-search-field"><span style="font-size:22px">🔍</span><input id="photo-search-input" value="${q}" placeholder="게임, 앱, 스토리 등"></div>${match?`<div class="search-result-list final-results" style="margin-top:18px">${photoRow(target,trialIdx,'받기')}</div>`:`<div class="search-photo-list-title">추천 앱과 게임 ›</div>${photoRow(FIXED_ORDER_APPS[4],4,'열기',true)}${photoRow(FIXED_ORDER_APPS[5],5,'☁️')}${photoRow(FIXED_ORDER_APPS[6],6,'☁️')}<div class="search-photo-list-title">둘러보기 ›</div><div class="search-photo-ranking"><div class="search-rank-card" style="background:linear-gradient(160deg,#72a7e8,#5089d8)">앱 다운로드 순위</div><div class="search-rank-card" style="background:linear-gradient(160deg,#f6b36d,#f28b33)">게임 다운로드 순위</div></div>`}</div><div class="fake-keyboard"><div class="fake-search-input"><span>🔍</span><span id="fake-search-text">${q||target.keyword}</span><span style="margin-left:auto">🎙️</span><button onclick="renderSearchPhoto('')" style="border:0;background:transparent;font-size:24px">×</button></div><div class="fake-key-row">${['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'].map(k=>`<div class="fake-key">${k}</div>`).join('')}</div><div class="fake-key-row">${['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'].map(k=>`<div class="fake-key">${k}</div>`).join('')}</div><div class="fake-key-row">${['⇧','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','⌫'].map(k=>`<div class="fake-key">${k}</div>`).join('')}</div><div class="fake-bottom-row"><div class="fake-key" style="width:52px">123</div><div class="fake-space"></div><button class="fake-search-button" onclick="renderSearchPhoto(document.getElementById('photo-search-input')?.value||'${target.keyword}')">검색</button></div></div>`;let input=document.getElementById('photo-search-input');if(input){input.focus();input.oninput=()=>{let v=input.value;let f=document.getElementById('fake-search-text');if(f)f.textContent=v||target.keyword;clearTimeout(window.__photoSearchTimer);window.__photoSearchTimer=setTimeout(()=>renderSearchPhoto(v),220)}}}
+function bindPhotoTabs(){let tabs=document.querySelectorAll('.ios-tab');if(tabs.length>=4){tabs[0].onclick=renderTodayPhoto;tabs[1].onclick=renderGamesPhoto;tabs[2].onclick=renderAppsPhoto;tabs[3].onclick=()=>renderSearchPhoto('')}}
+function selectFixedApp(i){fillFixedAppDetail(FIXED_ORDER_APPS[i]);show('s-appdetail')}
+function fillFixedAppDetail(app){currentAppId=FIXED_ORDER_APPS.indexOf(app)+1;let ids={icon:'detail-icon-img',name:'detail-app-name',dev:'detail-dev',rating:'detail-rating',age:'detail-age',rank:'detail-rank',cat:'detail-cat',whats:'detail-whatsnew',version:'detail-version',desc:'detail-description'};let icon=document.getElementById(ids.icon);if(icon){icon.innerHTML=app.svg||'';icon.style.background=`linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`}if(document.getElementById(ids.name))document.getElementById(ids.name).textContent=app.name;if(document.getElementById(ids.dev))document.getElementById(ids.dev).textContent=app.desc;if(document.getElementById(ids.rating))document.getElementById(ids.rating).textContent=app.rating;if(document.getElementById(ids.age))document.getElementById(ids.age).textContent=app.age;if(document.getElementById(ids.rank))document.getElementById(ids.rank).textContent=app.rank;if(document.getElementById(ids.cat))document.getElementById(ids.cat).textContent=app.category;if(document.getElementById(ids.whats))document.getElementById(ids.whats).textContent=app.whatsnew;if(document.getElementById(ids.version))document.getElementById(ids.version).textContent=app.version;if(document.getElementById(ids.desc))document.getElementById(ids.desc).textContent=app.appDesc;let btn=document.getElementById('detail-get-btn');if(btn){btn.textContent='받기';btn.onclick=startFixedDownload;btn.style.display='inline-flex'}}
+function startFixedDownload(){let app=FIXED_ORDER_APPS[(currentAppId||1)-1]||currentFixedApp();let icon=document.getElementById('store-loading-icon-inner');if(icon){icon.innerHTML=app.svg||'';icon.style.background=`linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`}let nm=document.getElementById('store-loading-name');if(nm)nm.textContent=app.name;let sub=document.getElementById('store-loading-sub');if(sub)sub.textContent=app.desc;let st=document.getElementById('store-loading-state');if(st)st.textContent='설치 중...';let r=document.getElementById('store-rating');if(r)r.textContent=app.rating;let a=document.getElementById('store-age');if(a)a.textContent=app.age;let rk=document.getElementById('store-rank');if(rk)rk.textContent=app.rank;let c=document.getElementById('store-category');if(c)c.textContent=app.category;show('s-loading');runLoading()}
+runLoading=function(){show('s-loading');let cond=conditionForTrial();if(activeLoader){activeLoader.stop();activeLoader=null}let cv=makeCanvas('cv-main');activeLoader=new PLoader(cv,cond.wavy,cond.steps,cond.spin);activeLoader.start(()=>{curAns=ansObj();let survey=document.getElementById('s-survey');survey.innerHTML=surveyHTML('ml',true);['q1','q2','q3','q4','q5','q6','q7','q8','q9'].forEach((key,i)=>buildLikert(`ml-${i+1}`,curAns,key));let fill=document.getElementById('prog-fill'),label=document.getElementById('prog-label'),tag=document.getElementById('s-tag');if(fill)fill.style.width=((trialIdx+1)/8*100)+'%';if(label)label.textContent=`${trialIdx+1} / 8 완료`;if(tag)tag.textContent=`조건 ${trialIdx+1}`;show('s-survey')})}
+endPractice=function(){if(!valid(practiceAns,'ptime-input')){alert('모든 문항에 응답해주세요.');return}trialIdx=0;renderSearchPhoto('');setTimeout(bindPhotoTabs,100)}
+submitSurvey=function(){let timeEl=document.getElementById('time-input');curAns.time=timeEl?timeEl.value.trim():'';let keys=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];if(keys.some(k=>curAns[k]===null||curAns[k]===undefined||curAns[k]==='')||curAns.time===''){alert('모든 문항에 응답해주세요.');return}let cond=conditionForTrial(),app=FIXED_ORDER_APPS[(currentAppId||1)-1]||currentFixedApp();responses.push({trialOrder:trialIdx+1,conditionId:cond.id,conditionDesc:cond.desc,appId:currentAppId,appName:app.name,appKeyword:app.keyword,perceivedDuration:curAns.q1,timeEstimate:curAns.time,speedPerception:curAns.q2,speedPattern:curAns.q3,progressPredictability:curAns.q4,progressClarity:curAns.q5,frustration:curAns.q6,attention:curAns.q7,satisfaction:curAns.q8,exitIntent:curAns.q9});trialIdx++;if(trialIdx>=8){buildFinalGrids();show('s-final');setTimeout(startMiniPreviews,120)}else{curAns=ansObj();renderSearchPhoto('');setTimeout(bindPhotoTabs,100)}}
+setTimeout(bindPhotoTabs,500);
+</script>
+
+
+<script id="loading-ui-slot-js">
+/* 설치 중 텍스트 제거 + 8개 로딩 UI를 App Store 위치에 직접 출력 */
+function prepareLoadingUISlot(){
+  const line = document.querySelector('.store-loader-line');
+  if(!line) return;
+
+  line.innerHTML = '<canvas id="cv-main"></canvas>';
+
+  const state = document.getElementById('store-loading-state');
+  if(state){
+    state.textContent = '';
+    state.style.display = 'none';
+  }
+}
+
+/* cv-main은 App Store 로딩 자리에서 작게 표시 */
+const __originalMakeCanvasForSlot = makeCanvas;
+makeCanvas = function(id){
+  const cv = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+
+  if(id === 'cv-main'){
+    const cs = 58;
+    cv.style.width = cs + 'px';
+    cv.style.height = cs + 'px';
+    cv.width = Math.round(cs * dpr);
+    cv.height = Math.round(cs * dpr);
+    return cv;
+  }
+
+  return __originalMakeCanvasForSlot(id);
+};
+
+/* 다운로드 시작 시 텍스트 없이 로딩 UI만 보이게 */
+const __oldStartFixedDownloadSlot = startFixedDownload;
+startFixedDownload = function(){
+  const app = FIXED_ORDER_APPS[(currentAppId||1)-1] || currentFixedApp();
+
+  const icon=document.getElementById('store-loading-icon-inner');
+  const name=document.getElementById('store-loading-name');
+  const sub=document.getElementById('store-loading-sub');
+  const rating=document.getElementById('store-rating');
+  const age=document.getElementById('store-age');
+  const rank=document.getElementById('store-rank');
+  const cat=document.getElementById('store-category');
+  const version=document.getElementById('store-version');
+
+  if(icon){
+    icon.innerHTML=app.svg||'';
+    icon.style.background=`linear-gradient(145deg,${app.colors[0]},${app.colors[1]})`;
+  }
+  if(name) name.textContent=app.name;
+  if(sub) sub.textContent=app.desc;
+  if(rating) rating.textContent=app.rating;
+  if(age) age.textContent=app.age;
+  if(rank) rank.textContent=app.rank;
+  if(cat) cat.textContent=app.category;
+  if(version) version.textContent=app.version.split('•')[0].trim();
+
+  show('s-loading');
+  prepareLoadingUISlot();
+  runLoading();
+};
+
+/* 8개 로딩 조건을 순서대로 App Store 위치에 렌더링 */
+runLoading = function(){
+  show('s-loading');
+  prepareLoadingUISlot();
+
+  const cond = CONDITIONS[trialIdx % 8];
+
+  if(activeLoader){
+    activeLoader.stop();
+    activeLoader = null;
+  }
+
+  const cv = makeCanvas('cv-main');
+  activeLoader = new PLoader(cv, cond.wavy, cond.steps, cond.spin);
+
+  activeLoader.start(()=>{
+    curAns = ansObj();
+
+    const survey = document.getElementById('s-survey');
+    survey.innerHTML = surveyHTML('ml', true);
+
+    const keys = ['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+    keys.forEach((key,i)=>buildLikert(`ml-${i+1}`, curAns, key));
+
+    const fill = document.getElementById('prog-fill');
+    const label = document.getElementById('prog-label');
+    const tag = document.getElementById('s-tag');
+
+    if(fill) fill.style.width = ((trialIdx+1)/8*100) + '%';
+    if(label) label.textContent = `${trialIdx+1} / 8 완료`;
+    if(tag) tag.textContent = `조건 ${trialIdx+1}`;
+
+    show('s-survey');
+  });
+};
+</script>
+
+
+<script id="practice-loading-ratio-final-js">
+/* 원래 로딩 UI 선 두께 비율을 유지하기 위한 Loader 보정 */
+class SlotLoader extends PLoader{
+  constructor(cv,wavy,steps,hasSpin){
+    super(cv,wavy,steps,hasSpin);
+    this.slotSW = 5.2;   // 82px 캔버스 기준 원래 비율에 맞춘 두께
+    this.slotAMP = 4.6;  // 구불 라인 진폭도 비율 보정
+  }
+  draw(el){
+    const ctx=this.ctx, CX=this.CX, CY=this.CY, R=this.R, CAP=this.slotSW/2/this.R;
+    const dpr=window.devicePixelRatio||1, wt=el/1000;
+    ctx.clearRect(0,0,this.cv.width,this.cv.height);
+    ctx.save();
+    ctx.scale(dpr,dpr);
+
+    const sA=-Math.PI/2, fA=sA+Math.PI*2;
+
+    if(this.done){
+      ctx.beginPath();
+      ctx.arc(CX,CY,R,sA,fA);
+      ctx.strokeStyle='#007AFF';
+      ctx.lineWidth=this.slotSW;
+      ctx.lineCap='butt';
+      ctx.stroke();
+
+      const p=this.doneAt!=null?Math.min((el-this.doneAt)/400,1):1;
+      const ep=eio(p);
+      ctx.save();
+      ctx.globalAlpha=ep;
+      ctx.translate(CX,CY);
+      ctx.scale(ep,ep);
+      ctx.beginPath();
+      ctx.arc(0,0,14,0,Math.PI*2);
+      ctx.fillStyle='#007AFF';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-6,0);
+      ctx.lineTo(-2,6);
+      ctx.lineTo(8,-7);
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=2.6;
+      ctx.lineCap='round';
+      ctx.lineJoin='round';
+      ctx.stroke();
+      ctx.restore();
+    }else if(this.hasSpin && el>this.p1End){
+      ctx.beginPath();
+      ctx.arc(CX,CY,R,sA,fA);
+      ctx.strokeStyle='#e5e5ea';
+      ctx.lineWidth=this.slotSW;
+      ctx.lineCap='butt';
+      ctx.stroke();
+
+      const rot=(el-this.p1End)/1000*Math.PI*2*1.8-Math.PI/2;
+      ctx.beginPath();
+      ctx.arc(CX,CY,R,rot,rot+Math.PI*1.5);
+      ctx.strokeStyle='#007AFF';
+      ctx.lineWidth=this.slotSW;
+      ctx.lineCap='round';
+      ctx.stroke();
+    }else{
+      const eA=this.angle, span=eA-sA, gs=eA+CAP, ge=fA-CAP;
+
+      if(span>.05 && gs<ge){
+        ctx.beginPath();
+        ctx.arc(CX,CY,R,gs,ge);
+        ctx.strokeStyle='#e5e5ea';
+        ctx.lineWidth=this.slotSW;
+        ctx.lineCap='round';
+        ctx.stroke();
+      }
+
+      if(span>.01){
+        if(!this.wavy){
+          ctx.beginPath();
+          ctx.arc(CX,CY,R,sA,eA);
+          ctx.strokeStyle='#007AFF';
+          ctx.lineWidth=this.slotSW;
+          ctx.lineCap='round';
+          ctx.stroke();
+        }else{
+          this.slotWavyDraw(ctx,sA,eA,wt);
+        }
+      }
+    }
+
+    ctx.restore();
+  }
+  slotWavyDraw(ctx,sA,eA,wt){
+    const CX=this.CX, CY=this.CY, R=this.R;
+    const segs=220, span=eA-sA, pts=[];
+    if(span<=.01)return;
+    for(let i=0;i<=segs;i++){
+      const t=i/segs, a=sA+t*span;
+      const ph=(a/(Math.PI*2))*Math.PI*2*FREQ-wt*FLOW;
+      pts.push([
+        CX+(R+this.slotAMP*Math.sin(ph))*Math.cos(a),
+        CY+(R+this.slotAMP*Math.sin(ph))*Math.sin(a)
+      ]);
+    }
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<segs;i++){
+      const mx=(pts[i-1][0]+pts[i][0])/2;
+      const my=(pts[i-1][1]+pts[i][1])/2;
+      ctx.quadraticCurveTo(pts[i-1][0],pts[i-1][1],mx,my);
+    }
+    ctx.lineTo(pts[segs][0],pts[segs][1]);
+    ctx.strokeStyle='#007AFF';
+    ctx.lineWidth=this.slotSW;
+    ctx.lineCap='round';
+    ctx.stroke();
+  }
+}
+
+class SlotPracticeLoader extends PracticeLoader{
+  constructor(cv){
+    super(cv);
+    this.slotSW = 5.2;
+  }
+  draw(el){
+    const ctx=this.ctx, CX=this.CX, CY=this.CY, R=this.R;
+    const dpr=window.devicePixelRatio||1;
+    const p=Math.min(el/this.dur,1), sA=-Math.PI/2;
+    ctx.clearRect(0,0,this.cv.width,this.cv.height);
+    ctx.save();
+    ctx.scale(dpr,dpr);
+
+    ctx.beginPath();
+    ctx.arc(CX,CY,R,sA,sA+Math.PI*2);
+    ctx.strokeStyle='#e5e5ea';
+    ctx.lineWidth=this.slotSW;
+    ctx.lineCap='butt';
+    ctx.stroke();
+
+    if(p>.01){
+      ctx.beginPath();
+      ctx.arc(CX,CY,R,sA,sA+Math.PI*2*p);
+      ctx.strokeStyle='#007AFF';
+      ctx.lineWidth=this.slotSW;
+      ctx.lineCap='round';
+      ctx.stroke();
+    }
+
+    if(p>=1){
+      const ep=eio(Math.min((el-this.dur)/400,1));
+      ctx.save();
+      ctx.globalAlpha=ep;
+      ctx.translate(CX,CY);
+      ctx.scale(ep,ep);
+      ctx.beginPath();
+      ctx.arc(0,0,14,0,Math.PI*2);
+      ctx.fillStyle='#007AFF';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-6,0);
+      ctx.lineTo(-2,6);
+      ctx.lineTo(8,-7);
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=2.6;
+      ctx.lineCap='round';
+      ctx.lineJoin='round';
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+}
+
+/* 앱스토어 로딩 위치에 캔버스 삽입 */
+function prepareLoadingUISlot(){
+  const line=document.querySelector('.store-loader-line');
+  if(!line)return;
+  line.innerHTML='<canvas id="cv-main"></canvas>';
+}
+
+function preparePracticeLoadingUISlot(){
+  const line=document.querySelector('.practice-loader-line');
+  if(!line)return;
+  line.innerHTML='<canvas id="cv-practice"></canvas>';
+  const state=document.getElementById('practice-store-state');
+  if(state){
+    state.textContent='';
+    state.style.display='none';
+  }
+}
+
+/* 캔버스 크기 보정 */
+const __ratioFixMakeCanvas = makeCanvas;
+makeCanvas = function(id){
+  const cv=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+
+  if(id==='cv-main' || id==='cv-practice'){
+    const cs=82;
+    cv.style.width=cs+'px';
+    cv.style.height=cs+'px';
+    cv.width=Math.round(cs*dpr);
+    cv.height=Math.round(cs*dpr);
+    return cv;
+  }
+
+  return __ratioFixMakeCanvas(id);
+};
+
+/* 본실험 로딩: 텍스트 없이 8개 조건 순서대로 */
+runLoading=function(){
+  show('s-loading');
+  prepareLoadingUISlot();
+
+  const cond=CONDITIONS[trialIdx%8];
+
+  if(activeLoader){
+    activeLoader.stop();
+    activeLoader=null;
+  }
+
+  const cv=makeCanvas('cv-main');
+  activeLoader=new SlotLoader(cv,cond.wavy,cond.steps,cond.spin);
+
+  activeLoader.start(()=>{
+    curAns=ansObj();
+
+    const survey=document.getElementById('s-survey');
+    survey.innerHTML=surveyHTML('ml',true);
+
+    const keys=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+    keys.forEach((key,i)=>buildLikert(`ml-${i+1}`,curAns,key));
+
+    const fill=document.getElementById('prog-fill');
+    const label=document.getElementById('prog-label');
+    const tag=document.getElementById('s-tag');
+
+    if(fill) fill.style.width=((trialIdx+1)/8*100)+'%';
+    if(label) label.textContent=`${trialIdx+1} / 8 완료`;
+    if(tag) tag.textContent=`조건 ${trialIdx+1}`;
+
+    show('s-survey');
+  });
+};
+
+/* 연습 앱 로딩도 텍스트 없이 같은 비율 로딩 UI */
+runPracticeLoading=function(){
+  show('s-practice-loading');
+  preparePracticeLoadingUISlot();
+
+  if(activeLoader){
+    activeLoader.stop();
+    activeLoader=null;
+  }
+
+  const cv=makeCanvas('cv-practice');
+  activeLoader=new SlotPracticeLoader(cv);
+  activeLoader.start(()=>show('s-practice-survey'));
+};
+</script>
+
+
+<script id="iphone15pro-final-js">
+/* iPhone 15 Pro용 로딩 UI 크기/두께 재보정 */
+if(typeof SlotLoader !== 'undefined'){
+  const OldSlotLoader = SlotLoader;
+  SlotLoader = class extends OldSlotLoader{
+    constructor(cv,wavy,steps,hasSpin){
+      super(cv,wavy,steps,hasSpin);
+      this.slotSW = 4.9;
+      this.slotAMP = 4.2;
+    }
+  }
+}
+if(typeof SlotPracticeLoader !== 'undefined'){
+  const OldSlotPracticeLoader = SlotPracticeLoader;
+  SlotPracticeLoader = class extends OldSlotPracticeLoader{
+    constructor(cv){
+      super(cv);
+      this.slotSW = 4.9;
+    }
+  }
+}
+
+const __iphoneMakeCanvas = makeCanvas;
+makeCanvas = function(id){
+  const cv=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+
+  if(id==='cv-main' || id==='cv-practice'){
+    const cs=76;
+    cv.style.width=cs+'px';
+    cv.style.height=cs+'px';
+    cv.width=Math.round(cs*dpr);
+    cv.height=Math.round(cs*dpr);
+    return cv;
+  }
+
+  return __iphoneMakeCanvas(id);
+};
+
+/* iPhone 15 Pro에서 검색 화면 첫 진입 시 레이아웃 안정화 */
+window.addEventListener('resize',()=>{
+  document.body.style.height=window.innerHeight+'px';
+});
+document.body.style.height=window.innerHeight+'px';
+</script>
+
+</body>
+</html>
