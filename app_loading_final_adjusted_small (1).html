@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>App Loading UX Study</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--blue:#007AFF;--f:-apple-system,'Helvetica Neue',sans-serif;--bg:#f2f2f7}
+html,body{height:100%;width:100%;font-family:var(--f);background:#000;overflow:hidden;color:#1c1c1e}
+.wrap{position:relative;width:100vw;height:100dvh;max-width:none;margin:0;background:var(--bg);overflow:hidden}
+.scr{display:none;position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;flex-direction:column}
+.scr.on{display:flex}
+
+/* STATUS BAR */
+.sbar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:15px;font-weight:700;background:#fff;flex-shrink:0;border-bottom:.5px solid rgba(0,0,0,.08)}
+
+/* TAB BAR */
+.tabbar{position:sticky;bottom:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:.5px solid rgba(60,60,67,.18);display:flex;align-items:center;padding:8px 0 calc(8px + env(safe-area-inset-bottom));flex-shrink:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0}
+.tab span:first-child{font-size:24px;line-height:1}
+.tab span:last-child{font-size:11px;font-weight:600;color:#8e8e93}
+.tab.on span:last-child{color:var(--blue)}
+
+/* START */
+#s-start{background:var(--bg)}
+.start-inner{padding:20px 16px calc(28px + env(safe-area-inset-bottom))}
+.start-card{background:#fff;border-radius:22px;padding:26px 20px 22px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:#e8f4ff;color:var(--blue);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+h1.start-title{font-size:24px;font-weight:800;line-height:1.35;letter-spacing:-.03em}
+.start-sub{font-size:13.5px;line-height:1.75;color:#6e6e73;margin-top:10px}
+.scenario{background:#f2f2f7;border-radius:14px;padding:14px 15px;margin-top:16px}
+.scenario p{font-size:13px;line-height:1.72;color:#3c3c43}
+.pid-label{font-size:13px;font-weight:700;color:#3c3c43;margin:18px 0 8px;display:block}
+.pid-input{width:100%;height:50px;padding:0 15px;border:1.5px solid #d1d1d6;border-radius:14px;background:#fff;color:#1c1c1e;font-size:16px!important;outline:none;font-family:var(--f);transition:.15s}
+.pid-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.12)}
+.btn-main{width:100%;min-height:52px;border:0;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--blue);color:#fff;margin-top:16px;font-family:var(--f);box-shadow:0 6px 18px rgba(0,122,255,.3)}
+.note{font-size:11.5px;color:#8e8e93;text-align:center;margin-top:10px;line-height:1.6}
+
+/* NOTICE (dark) */
+#s-notice{background:radial-gradient(circle at 50% 35%,rgba(0,122,255,.22),transparent 40%),linear-gradient(180deg,#0b1730,#071022);align-items:center;justify-content:center;text-align:center;color:#fff;gap:12px}
+.nkicker{font-size:12px;font-weight:900;letter-spacing:.16em;color:rgba(143,194,255,.8);text-transform:uppercase}
+.ntitle{font-size:24px;font-weight:800;line-height:1.4;letter-spacing:-.025em}
+.nsub{font-size:14px;color:rgba(255,255,255,.55);line-height:1.72;max-width:300px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--blue);animation:pulse 1.15s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.34;transform:scale(.7)}}
+
+/* APP STORE LOADING PAGE (white) */
+.load-page{background:#fff;flex-direction:column;overflow-y:auto}
+.load-nav{display:flex;justify-content:space-between;align-items:center;padding:calc(14px + env(safe-area-inset-top)) 20px 6px}
+.nav-circle{width:48px;height:48px;border-radius:50%;background:#f2f2f7;border:0;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;color:#1c1c1e}
+.load-hero{display:flex;align-items:center;gap:18px;padding:22px 20px 0}
+.load-icon{width:114px;height:114px;border-radius:26px;flex-shrink:0;overflow:hidden;border:.5px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
+.load-info{flex:1;min-width:0}
+.load-name{font-size:26px;font-weight:900;letter-spacing:-.04em;color:#111}
+.load-sub{font-size:14px;color:#8e8e93;margin-top:4px;line-height:1.4}
+.load-indicator{margin-top:22px;display:flex;align-items:center;min-height:80px}
+.load-stats{display:flex;margin:18px 16px 0;padding:14px 0;border-top:1px solid #f2f2f7;border-bottom:1px solid #f2f2f7}
+.load-stat{flex:1;text-align:center;border-right:1px solid #f2f2f7}
+.load-stat:last-child{border-right:0}
+.load-stat-top{font-size:12px;color:#8e8e93;font-weight:700}
+.load-stat-val{font-size:24px;font-weight:900;color:#8e8e93;margin-top:6px}
+.load-news{padding:22px 20px 0}
+.load-sec-title{font-size:24px;font-weight:900;letter-spacing:-.04em;color:#111}
+.load-news-meta{display:flex;justify-content:space-between;color:#8e8e93;font-size:13px;margin-top:8px}
+.load-news-text{font-size:15px;color:#111;margin-top:14px;line-height:1.6}
+.load-preview{padding:22px 20px 40px}
+.prev-row{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin-top:12px}
+.prev-row::-webkit-scrollbar{display:none}
+.prev-card{flex:0 0 168px;height:298px;border-radius:20px;border:.5px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;text-align:center;padding:16px}
+
+/* SEARCH */
+#s-search{background:#fff;flex-direction:column}
+.search-top{padding:calc(12px + env(safe-area-inset-top)) 14px 10px;background:rgba(255,255,255,.94);backdrop-filter:blur(20px);border-bottom:.5px solid rgba(0,0,0,.1);position:sticky;top:0;z-index:20;flex-shrink:0}
+.search-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.search-title{font-size:30px;font-weight:900;letter-spacing:-.045em;color:#1c1c1e}
+.progress-pill{background:#e8f4ff;color:var(--blue);font-size:12px;font-weight:800;padding:5px 11px;border-radius:999px}
+.search-bar{height:38px;border-radius:11px;background:#e5e5ea;display:flex;align-items:center;gap:8px;padding:0 11px;cursor:text}
+.search-bar input{flex:1;border:0;outline:0;background:transparent;font-size:16px!important;color:#1c1c1e;font-family:var(--f);caret-color:var(--blue);min-width:0}
+.search-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.cancel-btn{border:0;background:transparent;color:var(--blue);font-size:16px;font-weight:500;white-space:nowrap;padding:4px 0 4px 8px;font-family:var(--f);cursor:pointer;flex-shrink:0}
+.sugg-row{display:flex;align-items:center;gap:13px;padding:12px 16px;border-bottom:.5px solid #f2f2f7;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sugg-icon{width:30px;height:30px;border-radius:8px;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sugg-text{font-size:16px;color:#1c1c1e;flex:1}
+.result-row{display:flex;align-items:center;gap:13px;padding:14px 16px;cursor:pointer}
+.result-icon{width:64px;height:64px;border-radius:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12);overflow:hidden}
+.result-name{font-size:17px;font-weight:600;color:#1c1c1e;letter-spacing:-.01em}
+.result-desc{font-size:13px;color:#8e8e93;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-meta{font-size:11.5px;color:#8e8e93;margin-top:3px}
+.result-get{min-width:70px;height:30px;border-radius:999px;border:0;background:#e8f4ff;color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;padding:0 16px;flex-shrink:0;font-family:var(--f)}
+.result-prev-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 16px 14px;border-bottom:.5px solid #f2f2f7}
+.result-prev-row::-webkit-scrollbar{display:none}
+.result-prev-card{flex:0 0 126px;height:224px;border-radius:16px;border:.5px solid rgba(0,0,0,.07)}
+.section-hdr{padding:16px 16px 8px;font-size:19px;font-weight:700;color:#1c1c1e}
+
+/* DETAIL */
+#s-detail{background:#fff;flex-direction:column}
+.detail-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:.5px solid rgba(0,0,0,.06);position:sticky;top:0;z-index:20;flex-shrink:0}
+.detail-back{display:flex;align-items:center;color:var(--blue);font-size:17px;font-weight:500;background:none;border:0;cursor:pointer;padding:4px 0;font-family:var(--f)}
+.detail-scroll{flex:1;overflow-y:auto;padding-bottom:40px}
+.d-hero{padding:20px 16px 0}
+.d-hero-row{display:flex;align-items:flex-start;gap:16px}
+.d-icon{width:110px;height:110px;border-radius:26px;overflow:hidden;flex-shrink:0;border:.5px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
+.d-name{font-size:25px;font-weight:900;letter-spacing:-.04em;color:#111;line-height:1.2}
+.d-dev{font-size:14px;color:#8e8e93;margin-top:5px}
+.d-get{margin-top:12px;height:34px;padding:0 22px;border-radius:999px;border:0;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;font-family:var(--f);box-shadow:0 4px 12px rgba(0,122,255,.3)}
+.d-stats{display:flex;margin:16px 0 0;border-top:1px solid #f2f2f7;border-bottom:1px solid #f2f2f7;padding:12px 0}
+.d-stat{flex:1;text-align:center;border-right:1px solid #f2f2f7}
+.d-stat:last-child{border-right:0}
+.d-stat-val{font-size:15px;font-weight:700;color:#1c1c1e}
+.d-stat-sub{font-size:10px;color:#8e8e93;margin-top:2px;text-transform:uppercase}
+.d-sec{padding:16px 16px 0}
+.d-sec-title{font-size:19px;font-weight:700;color:#1c1c1e;margin-bottom:8px}
+.d-news{font-size:13px;line-height:1.65;color:#3c3c43}
+.d-ver{font-size:12px;color:#8e8e93;margin-top:6px}
+.d-prev-row{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-top:8px}
+.d-prev-row::-webkit-scrollbar{display:none}
+.d-prev-card{flex:0 0 148px;height:265px;border-radius:18px;border:.5px solid rgba(0,0,0,.07)}
+
+/* SURVEY */
+.survey-wrap{background:var(--bg);flex-direction:column}
+.survey-sticky{position:sticky;top:0;background:rgba(242,242,247,.93);backdrop-filter:blur(18px);z-index:10;border-bottom:.5px solid rgba(0,0,0,.08);padding:10px 16px 9px;flex-shrink:0}
+.prog-bar{height:5px;background:#e5e5ea;border-radius:999px;overflow:hidden;margin-bottom:6px}
+.prog-fill{height:100%;background:var(--blue);border-radius:999px;transition:width .35s}
+.prog-text{display:flex;justify-content:space-between;font-size:11px;color:#8e8e93}
+.s-body{padding:12px 14px calc(28px + env(safe-area-inset-bottom))}
+.s-head{background:#fff;border-radius:18px;padding:16px 15px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.s-kicker{font-size:11px;font-weight:900;letter-spacing:.14em;color:var(--blue);text-transform:uppercase}
+.s-title{font-size:19px;font-weight:800;letter-spacing:-.02em;color:#1c1c1e;margin-top:6px}
+.s-sub{font-size:12px;line-height:1.65;color:#8e8e93;margin-top:5px}
+.sec-lbl{display:flex;align-items:center;gap:7px;margin:18px 2px 5px;font-size:11px;font-weight:700;color:#8e8e93;letter-spacing:.06em;text-transform:uppercase}
+.sec-lbl::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.q-card{background:#fff;border-radius:16px;padding:15px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.q-text{font-size:14px;font-weight:600;line-height:1.55;color:#1c1c1e;margin-bottom:12px;letter-spacing:-.01em}
+.likert-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.lbtn{aspect-ratio:1;min-height:40px;border:.5px solid rgba(0,0,0,.16);border-radius:10px;background:#fff;color:#3c3c43;font-weight:700;font-size:14.5px;cursor:pointer;font-family:var(--f)}
+.lbtn.sel{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(0,122,255,.28)}
+.likert-ends{display:flex;justify-content:space-between;font-size:10.5px;color:#8e8e93;margin-top:5px}
+.num-wrap{width:100%}
+.num-input{width:100%;height:46px;padding:0 14px;border:1.5px solid #d1d1d6;border-radius:13px;background:#fff;font-size:16px!important;font-family:var(--f);outline:none}
+.num-input:focus{border-color:var(--blue)}
+.num-help{font-size:11px;color:#8e8e93;margin-top:6px;line-height:1.5}
+.survey-submit{width:100%;min-height:52px;border:0;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--blue);color:#fff;font-family:var(--f);box-shadow:0 6px 18px rgba(0,122,255,.3);margin-top:6px;display:flex;align-items:center;justify-content:center}
+
+/* FINAL */
+#s-final{background:var(--bg)}
+.final-inner{padding:14px 14px calc(28px + env(safe-area-inset-bottom))}
+.final-head{background:#fff;border-radius:20px;padding:18px 16px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.cond-btn{width:100%;padding:13px;border:1.5px solid #d1d1d6;border-radius:16px;background:#fff;text-align:left;cursor:pointer;margin-bottom:8px;font-family:var(--f);display:block}
+.cond-btn.sel{border-color:var(--blue);background:#e8f4ff}
+.cond-btn strong{display:block;font-size:14px;font-weight:700;color:#1c1c1e;margin-bottom:8px}
+.mini-wrap{height:72px;background:#f7f9ff;border-radius:11px;border:1px solid #e5effc;display:flex;align-items:center;justify-content:center;position:relative}
+.replay-tag{position:absolute;right:8px;top:6px;background:#e8f4ff;color:var(--blue);font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;cursor:pointer;border:0;font-family:var(--f)}
+.final-ta{width:100%;min-height:90px;padding:13px;border:1.5px solid #d1d1d6;border-radius:14px;font-size:14px;line-height:1.65;resize:vertical;outline:none;background:#fff;font-family:var(--f)}
+.final-ta:focus{border-color:var(--blue)}
+
+/* DONE */
+#s-done{background:radial-gradient(circle at 50% 35%,rgba(0,122,255,.18),transparent 34%),linear-gradient(180deg,#0b1730,#071022);align-items:center;justify-content:center;color:#fff}
+.done-glass{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:28px 22px;text-align:center;width:calc(100% - 32px);max-width:360px}
+.done-icon{width:76px;height:76px;border-radius:50%;background:rgba(0,122,255,.18);border:2px solid rgba(0,122,255,.4);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto}
+.done-title{font-size:24px;font-weight:800;color:#fff;margin-top:14px}
+.done-sub{font-size:14px;line-height:1.75;color:rgba(255,255,255,.58);margin-top:8px}
+.done-btn{width:100%;min-height:50px;border-radius:14px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--f);display:flex;align-items:center;justify-content:center;margin-top:10px}
+.done-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 6px 18px rgba(0,122,255,.3)}
+
+/* REPLAY MODAL */
+#replay-modal{display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 35%,rgba(0,122,255,.18),transparent 34%),linear-gradient(180deg,#0b1730,#071022);flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;text-align:center;padding:28px}
+#replay-modal.on{display:flex}
+.replay-kicker{font-size:11px;font-weight:900;letter-spacing:.16em;color:rgba(143,194,255,.8);text-transform:uppercase}
+.replay-title{font-size:20px;font-weight:800}
+.replay-close{padding:13px 32px;border:1.5px solid rgba(255,255,255,.2);border-radius:16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--f);margin-top:6px;display:none}
+
+/* ICONS */
+.icon-svg{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<!-- ① START -->
+
+<div id="s-start" class="scr on">
+<div class="start-inner">
+<div class="start-card">
+  <div class="badge">Research Prototype</div>
+  <h1 class="start-title">iPhone App Store<br>다운로드 경험 연구</h1>
+  <p class="start-sub">App Store에서 앱을 다운로드할 때 나타나는 로딩 화면이 사용자 경험에 미치는 영향을 연구합니다.</p>
+  <div class="scenario">
+    <p>App Store <b>검색 탭</b>에서 지정된 앱을 직접 검색하고 <b>"받기"</b>를 눌러 다운로드하는 상황입니다. 다운로드 중 나타나는 로딩 화면을 관찰한 뒤 설문에 응답해주세요. 총 8개 앱을 완료합니다.</p>
+  </div>
+  <label class="pid-label">참가자 번호</label>
+  <input class="pid-input" id="pid-inp" type="number" inputmode="numeric" placeholder="실험자에게 안내받은 번호 입력" min="1">
+  <button class="btn-main" id="start-btn" type="button">App Store로 이동하기 →</button>
+  <p class="note">브라우저 뒤로가기나 새로고침을 누르지 마세요.</p>
+</div>
+</div>
+</div>
+
+<!-- ② NOTICE -->
+
+<div id="s-notice" class="scr">
+  <div class="nkicker">Practice Trial</div>
+  <div class="ntitle">연습 시행을 시작합니다</div>
+  <div class="nsub">연습 앱에는 15초 일반 로딩 화면이 제시됩니다. 연습 후 실제 실험이 시작됩니다.</div>
+  <div class="pulse"></div>
+</div>
+
+<!-- ③ PRACTICE LOADING -->
+
+<div id="s-pload" class="scr load-page">
+  <div class="load-nav">
+    <button class="nav-circle">‹</button>
+    <button class="nav-circle">⬆</button>
+  </div>
+  <div class="load-hero">
+    <div class="load-icon" style="background:linear-gradient(135deg,#ff9a00,#ffcc44)">
+      <span style="font-size:52px">🥕</span>
+    </div>
+    <div class="load-info">
+      <div class="load-name">연습 앱</div>
+      <div class="load-sub">다운로드 화면 연습용 앱</div>
+      <div class="load-indicator"><canvas id="cv-p"></canvas></div>
+    </div>
+  </div>
+  <div class="load-stats">
+    <div class="load-stat"><div class="load-stat-top">평가</div><div class="load-stat-val">4.6</div></div>
+    <div class="load-stat"><div class="load-stat-top">연령</div><div class="load-stat-val">4+</div></div>
+    <div class="load-stat"><div class="load-stat-top">차트</div><div class="load-stat-val">#12</div></div>
+  </div>
+  <div class="load-news">
+    <div class="load-sec-title">새로운 소식 ›</div>
+    <div class="load-news-meta"><span>버전 1.0.0</span><span>오늘</span></div>
+    <div class="load-news-text">● 연습용 앱입니다. 실제 앱이 아닙니다.</div>
+  </div>
+  <div class="load-preview">
+    <div class="load-sec-title">미리 보기</div>
+    <div class="prev-row">
+      <div class="prev-card" style="background:linear-gradient(160deg,#b7e5ff,#eef9ff);color:#f97316">연습용<br>앱 화면</div>
+      <div class="prev-card" style="background:linear-gradient(160deg,#fff,#f5f5f7);color:#333">설치 과정<br>확인용</div>
+    </div>
+  </div>
+</div>
+
+<!-- ④ PRACTICE SURVEY -->
+
+<div id="s-psurvey" class="scr survey-wrap"></div>
+
+<!-- ⑤ SEARCH -->
+
+<div id="s-search" class="scr">
+  <div class="search-top" id="search-top"></div>
+  <div class="search-body" id="search-body"></div>
+  <div class="tabbar" id="tabbar-search">
+    <div class="tab" onclick="setTab(0)"><span>🌐</span><span>투데이</span></div>
+    <div class="tab" onclick="setTab(1)"><span>🎮</span><span>게임</span></div>
+    <div class="tab" onclick="setTab(2)"><span>📱</span><span>앱</span></div>
+    <div class="tab on" onclick="setTab(3)"><span>🔍</span><span>검색</span></div>
+  </div>
+</div>
+
+<!-- ⑥ DETAIL -->
+
+<div id="s-detail" class="scr">
+  <div class="detail-nav">
+    <button class="detail-back" onclick="go('s-search')">‹ 검색</button>
+    <button style="width:36px;height:36px;border-radius:50%;background:#f2f2f7;border:0;font-size:18px;cursor:pointer">⬆</button>
+  </div>
+  <div class="detail-scroll">
+    <div class="d-hero">
+      <div class="d-hero-row">
+        <div class="d-icon" id="d-icon"></div>
+        <div style="flex:1;min-width:0;padding-top:4px">
+          <div class="d-name" id="d-name"></div>
+          <div class="d-dev" id="d-dev"></div>
+          <button class="d-get" id="d-get-btn" onclick="startDownload()">받기</button>
+        </div>
+      </div>
+      <div class="d-stats">
+        <div class="d-stat"><div class="d-stat-val" id="d-rating">4.8</div><div class="d-stat-sub">평점</div></div>
+        <div class="d-stat"><div class="d-stat-val" id="d-age">4+</div><div class="d-stat-sub">연령</div></div>
+        <div class="d-stat"><div class="d-stat-val" id="d-rank">#5</div><div class="d-stat-sub">차트</div></div>
+        <div class="d-stat"><div class="d-stat-val" id="d-cat">소셜</div><div class="d-stat-sub">카테고리</div></div>
+      </div>
+    </div>
+    <div class="d-sec" style="margin-top:16px">
+      <div class="d-sec-title">새로운 소식</div>
+      <div class="d-news" id="d-news"></div>
+      <div class="d-ver" id="d-ver"></div>
+    </div>
+    <div class="d-sec" style="padding-bottom:16px">
+      <div class="d-sec-title" style="margin-bottom:0">미리 보기</div>
+      <div class="d-prev-row" id="d-prev-row"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑦ LOADING -->
+
+<div id="s-loading" class="scr load-page">
+  <div class="load-nav">
+    <button class="nav-circle" onclick="go('s-detail')">‹</button>
+    <button class="nav-circle">⬆</button>
+  </div>
+  <div class="load-hero">
+    <div class="load-icon" id="l-icon"></div>
+    <div class="load-info">
+      <div class="load-name" id="l-name"></div>
+      <div class="load-sub" id="l-sub"></div>
+      <div class="load-indicator"><canvas id="cv-main"></canvas></div>
+    </div>
+  </div>
+  <div class="load-stats">
+    <div class="load-stat"><div class="load-stat-top" id="l-rating-lbl">3.9만개의 평가</div><div class="load-stat-val" id="l-rating">3.9</div></div>
+    <div class="load-stat"><div class="load-stat-top">연령</div><div class="load-stat-val" id="l-age">12+</div></div>
+    <div class="load-stat"><div class="load-stat-top">차트</div><div class="load-stat-val" id="l-rank">#6</div></div>
+  </div>
+  <div class="load-news">
+    <div class="load-sec-title">새로운 소식 ›</div>
+    <div class="load-news-meta"><span id="l-ver">버전 1.0</span><span id="l-date">4일 전</span></div>
+    <div class="load-news-text" id="l-news">● 버그 수정 및 성능 향상</div>
+  </div>
+  <div class="load-preview">
+    <div class="load-sec-title">미리 보기</div>
+    <div class="prev-row" id="l-prev-row"></div>
+  </div>
+</div>
+
+<!-- ⑧ SURVEY -->
+
+<div id="s-survey" class="scr survey-wrap"></div>
+
+<!-- ⑨ FINAL -->
+
+<div id="s-final" class="scr">
+  <div class="final-inner">
+    <div class="final-head">
+      <div class="s-kicker">최종 비교 평가</div>
+      <div class="s-title" style="font-size:20px">8개 로딩 화면 비교</div>
+      <div class="s-sub">지금까지 경험한 8개의 로딩 화면을 비교하여 응답해주세요. ▶ 다시 보기로 재확인할 수 있습니다.</div>
+    </div>
+    <div class="sec-lbl">가장 짧게 느껴진 로딩</div>
+    <div id="grid-short"></div>
+    <div class="sec-lbl">가장 선호하는 로딩</div>
+    <div id="grid-pref"></div>
+    <div class="sec-lbl">선택 이유 <span style="color:#8e8e93;font-weight:400">(선택)</span></div>
+    <div class="q-card"><textarea class="final-ta" id="reason-txt" placeholder="예: 진행 속도가 명확해서 기다림이 덜 느껴졌습니다."></textarea></div>
+    <button class="survey-submit" onclick="submitFinal()">응답 제출하기</button>
+  </div>
+</div>
+
+<!-- ⑩ DONE -->
+
+<div id="s-done" class="scr">
+  <div class="done-glass">
+    <div class="done-icon">✓</div>
+    <div class="done-title">실험이 완료되었습니다</div>
+    <div class="done-sub">참여해 주셔서 감사합니다.<br>아래 버튼으로 응답을 제출해주세요.</div>
+    <div id="done-pid" style="font-size:12px;color:rgba(255,255,255,.35);margin-top:6px;font-family:monospace"></div>
+    <button class="done-btn primary" id="submit-btn" onclick="submitToSheet()">응답 데이터 제출</button>
+    <div id="submit-status" style="font-size:13px;min-height:18px;color:rgba(255,255,255,.55);margin-top:8px;line-height:1.5"></div>
+    <button class="done-btn" onclick="downloadCSV()" style="margin-top:4px;font-size:13px">CSV 저장 (백업)</button>
+  </div>
+</div>
+
+<!-- REPLAY MODAL -->
+
+<div id="replay-modal">
+  <div class="replay-kicker" id="rk"></div>
+  <div class="replay-title" id="rt"></div>
+  <canvas id="cv-replay"></canvas>
+  <button class="replay-close" id="rc" onclick="closeReplay()">닫기</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+const FIXED_LOADING_MS=15000; // 모든 로딩 화면은 정확히 15초 후에만 다음 화면으로 이동
+const ICONS=['🥕','🐱','🟢','✦','📷','❄️','🦉','⚽'];
+const APPS = [
+  {id:0, keyword:'당근', name:'당근', dev:'Danggeun Market Inc.', desc:'당신 근처의 지역 생활 커뮤니티',
+   cat:'소셜 네트워킹', rating:'3.9', age:'12+', rank:'#5', ver:'버전 26.17.0', date:'4일 전',
+   news:'소소한 버그 및 앱 사용성을 개선했어요.',
+   colors:['#ff8a00','#ffb35c'],
+   prevColors:[['#b7e5ff','#eef9ff','#1c1c1e'],['#fff8ee','#ffedcc','#333']],
+   ac:['당근마켓','당근','당근알바','당근비즈니스','딸기도 있고, 당근도 있어요!(스토리)','당근부동산','당근영어','당근 전국 검색','당근마켓 전국','당근농장'],
+   decoy:{name:'번개장터',desc:'브랜드 중고거래 앱',meta:'★★★★☆ 15만 · Pic&Go · #14 쇼핑',bg:['#111','#333'],installed:false,
+     prevColors:[['#1a1a1a','#333','#fff'],['#222','#444','#fff'],['#1a1a1a','#2a2a2a','#fff']]}
+  },
+  {id:1, keyword:'고양이와 스프', name:'고양이와 스프: 마법의 레시피', dev:'Hidea', desc:'환상적인 머징의 세계로 떠나라냥!',
+   cat:'게임', rating:'4.8', age:'4+', rank:'#3', ver:'버전 1.8.0', date:'2일 전',
+   news:'신규 이벤트와 아이템이 추가되었어요.',
+   colors:['#ffd27a','#ff9d3d'],
+   prevColors:[['#536b96','#d6c0ef','#fff'],['#ffd27a','#ff9d3d','#fff']],
+   ac:['고양이와 스프: 마법의 레시피','고양이와 스프','고양이 키우기','냥코 대전쟁','캣 시뮬레이터','고양이 키우기 게임','Cat Soup','마법의 스프','냥이 키우기','스프 만들기'],
+   decoy:{name:'냥코 대전쟁',desc:'귀여운 고양이 방어탑 게임',meta:'★★★★★ 22만 · PONOS Corp. · #5 게임',bg:['#f59e0b','#dc2626'],installed:true,
+     prevColors:[['#f59e0b','#fbbf24','#111'],['#dc2626','#ef4444','#111']]}
+  },
+  {id:2, keyword:'네이버웹툰', name:'네이버웹툰 - Naver Webtoon', dev:'NAVER WEBTOON Ltd.', desc:'매일매일 새로운 웹툰과 만화',
+   cat:'엔터테인먼트', rating:'4.7', age:'12+', rank:'#9', ver:'버전 3.0.1', date:'5일 전',
+   news:'추천 화면과 작품 탐색 경험을 개선했어요.',
+   colors:['#00dc64','#00a84f'],
+   prevColors:[['#00dc64','#eafff1','#111'],['#101820','#263238','#fff']],
+   ac:['네이버웹툰','웹툰','Naver Webtoon','네이버 웹툰','화요웹툰','수요웹툰','웹툰 추천','네이버시리즈','만화 앱','쿠키오븐'],
+   decoy:{name:'카카오웹툰',desc:'다양한 인기 웹툰과 웹소설',meta:'★★★★☆ 8.7만 · Kakao Entertainment · #10 엔터테인먼트',bg:['#ffe812','#3a1d1d'],installed:false,
+     prevColors:[['#ffe812','#fff4a3','#111'],['#3a1d1d','#5b2d2d','#fff']]}
+  },
+  {id:3, keyword:'Gemini', name:'Google Gemini', dev:'Google LLC', desc:'Google에서 제공하는 AI 어시스턴트',
+   cat:'생산성', rating:'4.7', age:'4+', rank:'#4', ver:'버전 2.0.2', date:'1일 전',
+   news:'응답 속도와 다국어 기능을 개선했어요.',
+   colors:['#4285f4','#ea4335'],
+   prevColors:[['#d4dcff','#f6f6f6','#111'],['#a7c7ff','#e8f0fe','#333']],
+   ac:['Gemini','Google Gemini','Google AI 어시스턴트','Gemini Advanced','Google Bard','AI 어시스턴트','구글 AI','Gemini Pro','AI 챗봇','Google One AI'],
+   decoy:{name:'ChatGPT',desc:'AI 어시스턴트',meta:'★★★★☆ 11만 · OpenAI · #2 생산성',bg:['#10a37f','#1a1a2e'],installed:true,
+     prevColors:[['#10a37f','#1a7a60','#fff'],['#1a1a2e','#2a2a3e','#fff']]}
+  },
+  {id:4, keyword:'Instagram', name:'Instagram', dev:'Instagram, Inc.', desc:'사진 및 비디오',
+   cat:'소셜 네트워킹', rating:'4.5', age:'12+', rank:'#2', ver:'버전 360.0', date:'3일 전',
+   news:'스토리와 릴스 경험을 개선했어요.',
+   colors:['#feda75','#d62976'],
+   prevColors:[['#feda75','#d62976','#fff'],['#4f5bd5','#962fbf','#fff']],
+   ac:['Instagram','인스타그램','Instagram Lite','Instagram 릴스','Meta','인스타 DM','인스타그램 다운로드','IG','Instagram 스토리','Instagram 쇼핑'],
+   decoy:{name:'TikTok',desc:'짧은 동영상 플랫폼',meta:'★★★★☆ 33만 · TikTok Pte. Ltd. · #1 소셜',bg:['#111','#ee1d52'],installed:false,
+     prevColors:[['#111','#222','#fff'],['#ee1d52','#69c9d0','#fff']]}
+  },
+  {id:5, keyword:'SNOW', name:'SNOW 스노우 - AI 프로필 & 고화질 카메라', dev:'Snow Corp.', desc:'AI스타일, AI증명사진, AI헤어샵',
+   cat:'사진 및 비디오', rating:'4.6', age:'4+', rank:'#11', ver:'버전 13.2.1', date:'1주 전',
+   news:'AI 카메라 필터와 증명사진 기능을 개선했어요.',
+   colors:['#9be7ff','#5bd8f2'],
+   prevColors:[['#9be7ff','#fff','#111'],['#d6f7ff','#eefffe','#333']],
+   ac:['SNOW 스노우 - AI 프로필 & 고화질 카메라','SNOW','스노우 카메라','Snow AI 프로필','스노우 뷰티','AI 증명사진','뷰티 카메라','스노우 필터','B612','스노우 앱'],
+   decoy:{name:'B612',desc:'셀카 & 뷰티 카메라',meta:'★★★★☆ 7.3만 · Snow Corp. · #6 사진',bg:['#8b5cf6','#ec4899'],installed:true,
+     prevColors:[['#8b5cf6','#a78bfa','#fff'],['#ec4899','#f472b6','#fff']]}
+  },
+  {id:6, keyword:'Duolingo', name:'듀오링고(Duolingo): 언어 학습', dev:'Duolingo', desc:'영어, 스페인어, 프랑스어를 배워보세요.',
+   cat:'교육', rating:'4.8', age:'4+', rank:'#1', ver:'버전 7.11.0', date:'2일 전',
+   news:'학습 문제와 스트릭 기능을 개선했어요.',
+   colors:['#7ed321','#58c70a'],
+   prevColors:[['#7ed321','#d7ff8a','#1c1c1e'],['#fff','#f0fce4','#333']],
+   ac:['듀오링고(Duolingo): 언어 학습','Duolingo','듀오링고','영어 공부 앱','언어 학습','영어 회화','듀오링고 플러스','Duolingo English','영어 무료 앱','언어 공부'],
+   decoy:{name:'말해보카',desc:'영단어 말하기 학습',meta:'★★★★☆ 4.6만 · Malhae · #3 교육',bg:['#3b82f6','#06b6d4'],installed:false,
+     prevColors:[['#3b82f6','#60a5fa','#fff'],['#06b6d4','#22d3ee','#fff']]}
+  },
+  {id:7, keyword:'FC 모바일', name:'FC 모바일', dev:'Electronic Arts', desc:'언제 어디서나 FC 모바일!',
+   cat:'게임', rating:'4.3', age:'4+', rank:'#7', ver:'버전 12.0.1', date:'4일 전',
+   news:'경기 안정성과 선수 업데이트를 진행했어요.',
+   colors:['#1e3a8a','#111827'],
+   prevColors:[['#1e3a8a','#111827','#fff'],['#2563eb','#0f172a','#fff']],
+   ac:['FC 모바일','FC Mobile','FIFA 모바일','EA Sports FC','피파 모바일','FC 온라인 모바일','축구 게임','EA FC 모바일','FC 23 모바일','FC 24'],
+   decoy:{name:'야구 9이닝스',desc:'2024 모바일 야구',meta:'★★★★☆ 6.2만 · Com2uS · #11 게임',bg:['#1d4ed8','#0f172a'],installed:false,
+     prevColors:[['#1d4ed8','#2563eb','#fff'],['#0f172a','#1e293b','#fff']]}
+  }
+];
+
+/* ─── 8 CONDITIONS ─── */
+/* keyframes for progress position */
+const NORMAL15=[{t:0,p:0},{t:1500,p:10},{t:3000,p:20},{t:4500,p:30},{t:6000,p:40},{t:7500,p:50},{t:9000,p:60},{t:10500,p:70},{t:12000,p:80},{t:13500,p:90},{t:14990,p:99},{t:15000,p:100}]; // 연습 앱: 정확히 15초 일반 로딩
+const SA15=[{t:0,p:0},{t:500,p:15},{t:1000,p:35},{t:2000,p:70},{t:3000,p:82},{t:5000,p:88},{t:8000,p:93},{t:12000,p:97},{t:15000,p:100}];
+const SD15=[{t:0,p:0},{t:1000,p:5},{t:3000,p:10},{t:8000,p:13},{t:11000,p:18},{t:13000,p:70},{t:14500,p:85},{t:15000,p:100}];
+const SA10=[{t:0,p:0},{t:300,p:15},{t:700,p:35},{t:1300,p:70},{t:2000,p:82},{t:3300,p:88},{t:5300,p:93},{t:8000,p:97},{t:10000,p:99}];
+const SD10=[{t:0,p:0},{t:700,p:5},{t:2000,p:10},{t:5300,p:13},{t:7300,p:18},{t:8700,p:70},{t:9700,p:85},{t:10000,p:99}];
+const CONDS=[
+  {id:0,wavy:false,sched:SA15,spin:false,dur:FIXED_LOADING_MS},
+  {id:1,wavy:false,sched:SD15,spin:false,dur:FIXED_LOADING_MS},
+  {id:2,wavy:true, sched:SA15,spin:false,dur:FIXED_LOADING_MS},
+  {id:3,wavy:true, sched:SD15,spin:false,dur:FIXED_LOADING_MS},
+  {id:4,wavy:false,sched:SA10,spin:true, dur:FIXED_LOADING_MS},
+  {id:5,wavy:false,sched:SD10,spin:true, dur:FIXED_LOADING_MS},
+  {id:6,wavy:true, sched:SA10,spin:true, dur:FIXED_LOADING_MS},
+  {id:7,wavy:true, sched:SD10,spin:true, dur:FIXED_LOADING_MS},
+];
+/* Williams 8×8 Balanced Latin Square */
+const LS=[
+  [0,1,7,2,6,3,5,4],
+  [1,2,0,3,7,4,6,5],
+  [2,3,1,4,0,5,7,6],
+  [3,4,2,5,1,6,0,7],
+  [4,5,3,6,2,7,1,0],
+  [5,6,4,7,3,0,2,1],
+  [6,7,5,0,4,1,3,2],
+  [7,0,6,1,5,2,4,3],
+];
+
+/* ─── STATE ─── */
+let PID='', ORDER=LS[0], appIdx=0, practiceAns={}, curAns={}, responses=[], finalShort=null, finalPref=null;
+let activeLoader=null, replayLoader=null;
+const done = new Set();
+
+function ansObj(){return{q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:null,q9:null,time:''}}
+
+/* ═══════════════════════════════════════════
+   SCREEN NAV
+═══════════════════════════════════════════ */
+function go(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  const t=document.getElementById(id);
+  t.classList.add('on');
+  t.scrollTop=0;
+}
+
+/* ═══════════════════════════════════════════
+   CANVAS LOADER
+═══════════════════════════════════════════ */
+const SW=3.5, AMP=7, FREQ=16, FLOW=7, SPIN_AT=10000;
+function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t}
+
+class Loader{
+  constructor(canvasId, wavy, sched, hasSpin, duration, onDone, linear=false){
+    this.cv=typeof canvasId === 'string' ? document.getElementById(canvasId) : canvasId;
+    this.ctx=this.cv ? this.cv.getContext('2d') : null;
+    this.wavy=wavy; this.sched=sched; this.hasSpin=hasSpin; this.linear=linear;
+    this.duration=duration; this.onDone=onDone;
+    this.angle=-Math.PI/2; this.done=false; this.doneAt=0; this.raf=null; this.t0=null; this._finished=false;
+    if(this.cv) this._size();
+  }
+  _size(){
+    const dpr=devicePixelRatio||1, cs=parseFloat(this.cv.style.width)||76;
+    this.cv.style.width=cs+'px'; this.cv.style.height=cs+'px';
+    this.cv.width=Math.round(cs*dpr); this.cv.height=Math.round(cs*dpr);
+    this.R=cs*.31; this.CX=cs/2; this.CY=cs/2;
+  }
+  start(){this.t0=performance.now(); this.raf=requestAnimationFrame(t=>this._loop(t))}
+  stop(){if(this.raf){cancelAnimationFrame(this.raf);this.raf=null}}
+  _loop(now){
+    const el=now-this.t0;
+    const shown=Math.min(el,this.duration+600);
+    this._update(shown); this._draw(shown);
+    // 15초에 원이 완전히 채워진 뒤 체크 표시를 잠깐 보여주고 다음 화면으로 이동
+    if(el>=this.duration+600){
+      if(!this._finished){
+        this._finished=true;
+        if(this.onDone) this.onDone();
+      }
+      return;
+    }
+    this.raf=requestAnimationFrame(t=>this._loop(t));
+  }
+  _update(el){
+    if(el>=this.duration){if(!this.done){this.doneAt=el;}this.done=true;this.angle=-Math.PI/2+Math.PI*2;return;}
+    this.done=false;
+    const clamped=this.hasSpin?Math.min(el,SPIN_AT*this.duration/15000):el;
+    let pct=0;
+    if(this.linear){
+      // 연습용: 15초 동안 균일하게 진행
+      pct=(el/this.duration)*100;
+    } else {
+      // 원본 로딩 UI 방식: 지정 시점까지 멈춰 있다가, 해당 시점에서 짧게 이동하고 다시 멈춤
+      const MOVE_MS=420;
+      pct=this.sched[0]?.p ?? 0;
+      for(let i=1;i<this.sched.length;i++){
+        const prev=this.sched[i-1], cur=this.sched[i];
+        if(clamped < cur.t){
+          pct=prev.p;
+          break;
+        }
+        if(clamped >= cur.t && clamped < cur.t + MOVE_MS){
+          const r=Math.max(0,Math.min(1,(clamped-cur.t)/MOVE_MS));
+          pct=prev.p+(cur.p-prev.p)*eio(r);
+          break;
+        }
+        pct=cur.p;
+      }
+    }
+    // 15초가 되기 전에는 시각적으로 100% 완료 상태가 먼저 보이지 않도록 제한
+    if(el < this.duration) pct=Math.min(pct,99);
+    this.angle=-Math.PI/2+(pct/100)*Math.PI*2;
+  }
+  _draw(el){
+    const{ctx,CX,CY,R}=this, dpr=devicePixelRatio||1, wt=el/1000;
+    ctx.clearRect(0,0,this.cv.width,this.cv.height);
+    ctx.save(); ctx.scale(dpr,dpr);
+    const sA=-Math.PI/2, fA=sA+Math.PI*2;
+    if(this.done){
+      ctx.beginPath(); ctx.arc(CX,CY,R,sA,fA);
+      ctx.strokeStyle='#4f9df7'; ctx.lineWidth=SW; ctx.lineCap='butt'; ctx.stroke();
+      const p=eio(Math.min((el-this.doneAt)/400,1));
+      ctx.save(); ctx.globalAlpha=p; ctx.translate(CX,CY); ctx.scale(p,p);
+      ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fillStyle='#4f9df7'; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-10,1); ctx.lineTo(-3,10); ctx.lineTo(13,-10);
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+      ctx.restore();
+    } else if(this.hasSpin && el>SPIN_AT*(this.duration/15000)){
+      ctx.beginPath(); ctx.arc(CX,CY,R,sA,fA); ctx.strokeStyle='#1d4f91'; ctx.lineWidth=SW; ctx.lineCap='butt'; ctx.stroke();
+      const rot=(el-SPIN_AT*(this.duration/15000))/1000*Math.PI*2*1.8-Math.PI/2;
+      ctx.beginPath(); ctx.arc(CX,CY,R,rot,rot+Math.PI*1.5); ctx.strokeStyle='#4f9df7'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();
+    } else {
+      const eA=this.angle, span=eA-sA;
+      if(span>0.05){
+        const gs=eA+SW/2/R, ge=fA-SW/2/R;
+        if(gs<ge){ctx.beginPath(); ctx.arc(CX,CY,R,gs,ge); ctx.strokeStyle='#1d4f91'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();}
+      }
+      if(span>0.01){
+        if(!this.wavy){
+          ctx.beginPath(); ctx.arc(CX,CY,R,sA,eA); ctx.strokeStyle='#4f9df7'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();
+        } else {
+          const segs=220, pts=[];
+          for(let i=0;i<=segs;i++){const t=i/segs,a=sA+t*span,ph=(a/(Math.PI*2))*Math.PI*2*FREQ-wt*FLOW;pts.push([CX+(R+AMP*Math.sin(ph))*Math.cos(a),CY+(R+AMP*Math.sin(ph))*Math.sin(a)]);}
+          ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+          for(let i=1;i<segs;i++){const mx=(pts[i-1][0]+pts[i][0])/2,my=(pts[i-1][1]+pts[i][1])/2;ctx.quadraticCurveTo(pts[i-1][0],pts[i-1][1],mx,my);}
+          ctx.lineTo(pts[segs][0],pts[segs][1]);
+          ctx.strokeStyle='#4f9df7'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SVG ICON HELPERS
+═══════════════════════════════════════════ */
+function iconEl(app, size=110){
+  const d=document.createElement('div');
+  d.style.cssText=`width:${size}px;height:${size}px;border-radius:${size*.24}px;background:linear-gradient(145deg,${app.colors[0]},${app.colors[1]});display:flex;align-items:center;justify-content:center;font-size:${size*.45}px`;
+  d.textContent=ICONS[app.id];
+  return d;
+}
+function iconElStr(app, size=64){
+  return `<div style="width:${size}px;height:${size}px;border-radius:${size*.24}px;background:linear-gradient(145deg,${app.colors[0]},${app.colors[1]});display:flex;align-items:center;justify-content:center;font-size:${size*.45}px;flex-shrink:0">
+    ${ICONS[app.id]}</div>`;
+}
+
+/* ═══════════════════════════════════════════
+   START
+═══════════════════════════════════════════ */
+function startExp(){
+  PID=(document.getElementById('pid-inp').value||'').trim();
+  if(!PID){alert('참가자 번호를 입력해주세요.');return}
+  ORDER=LS[(parseInt(PID)-1)%8];
+  responses=[]; done.clear(); appIdx=0; practiceAns=ansObj(); curAns=ansObj();
+  go('s-notice');
+  setTimeout(startPractice, 2600);
+}
+
+/* ═══════════════════════════════════════════
+   PRACTICE
+═══════════════════════════════════════════ */
+function startPractice(){
+  go('s-pload');
+  if(activeLoader){activeLoader.stop();}
+  activeLoader=new Loader('cv-p',false,NORMAL15,false,FIXED_LOADING_MS,()=>{
+    buildSurvey('s-psurvey','pl',false);
+    bindLikerts('pl',practiceAns);
+    go('s-psurvey');
+  }, true);
+  activeLoader.start();
+}
+
+function endPractice(){
+  const e=validate(practiceAns,'pl-time');
+  if(e){alert(e);return}
+  appIdx=0;
+  renderSearchIdle();
+}
+
+/* ═══════════════════════════════════════════
+   SEARCH FLOW
+═══════════════════════════════════════════ */
+function setTab(i){
+  document.querySelectorAll('#tabbar-search .tab').forEach((t,j)=>t.classList.toggle('on',j===i));
+  // all tabs lead to search for this experiment
+  renderSearchIdle();
+}
+
+function renderSearchIdle(){
+  go('s-search');
+  document.querySelectorAll('#tabbar-search .tab').forEach((t,j)=>t.classList.toggle('on',j===3));
+  const app=APPS[appIdx];
+  const n=done.size;
+  document.getElementById('search-top').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:30px;font-weight:900;letter-spacing:-.045em;color:#1c1c1e">검색</div>
+      <div class="progress-pill">${n}/8 완료</div>
+    </div>
+    <div class="search-bar" onclick="renderSearchActive()">
+      ${qSvg('#8e8e93')}
+      <span style="font-size:16px;color:#8e8e93">게임, 앱, 스토리 등</span>
+    </div>`;
+  document.getElementById('search-body').innerHTML=`
+    <div style="background:#f2f2f7;padding:14px 16px;border-radius:14px;margin:14px 14px 18px;border:1px solid rgba(0,0,0,.06)">
+      <div style="font-size:13px;font-weight:700;color:#1c1c1e;margin-bottom:4px">${n+1}/8 번째 앱을 다운로드해주세요</div>
+      <div style="font-size:12.5px;color:#6e6e73;line-height:1.55">검색창을 탭하고 <b style="color:#007AFF">"${app.keyword}"</b>을 입력하세요</div>
+    </div>
+    <div style="font-size:19px;font-weight:700;color:#1c1c1e;padding:0 16px 8px">추천 검색어</div>
+    ${app.ac.map((s,i)=>`
+    <div class="sugg-row" onclick="renderSearchActive('${escAttr(s)}')">
+      <div class="sugg-icon">${qSvg()}</div>
+      <span class="sugg-text">${esc(s)}</span>
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="transform:rotate(45deg);flex-shrink:0"><path d="M1 9L9 1M9 1H3M9 1v6" stroke="#c7c7cc" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>`).join('')}
+  `;
+}
+
+function renderSearchActive(prefill=''){
+  go('s-search');
+  const app=APPS[appIdx];
+  const all=app.ac;
+  document.getElementById('search-top').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="search-bar" style="flex:1">
+        ${qSvg()}
+        <input id="real-inp" type="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+          value="${esc(prefill)}" placeholder="게임, 앱, 스토리 등"
+          style="flex:1;border:0;outline:0;background:transparent;font-size:16px!important;color:#1c1c1e;font-family:inherit;caret-color:#007AFF;min-width:0">
+        <button id="clr-btn" onclick="clrInput()" style="border:0;background:none;padding:0;display:${prefill?'flex':'none'};cursor:pointer;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#c7c7cc"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <button class="cancel-btn" onclick="renderSearchIdle()">취소</button>
+    </div>`;
+  renderSuggs(prefill, all);
+  const inp=document.getElementById('real-inp');
+  if(inp){
+    inp.focus();
+    inp.addEventListener('input',()=>renderSuggs(inp.value,all));
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderSearchResults(inp.value||app.keyword);}});
+    inp.addEventListener('compositionend',()=>renderSuggs(inp.value,all));
+    const c=document.getElementById('clr-btn');
+    if(c) c.addEventListener('click',()=>{ inp.value=''; renderSuggs('',all); inp.focus(); });
+  }
+}
+
+function renderSuggs(q, all){
+  const qL=q.toLowerCase();
+  const sugg=q?all.filter(s=>s.toLowerCase().includes(qL)):all;
+  const clr=document.getElementById('clr-btn');
+  if(clr) clr.style.display=q?'flex':'none';
+  document.getElementById('search-body').innerHTML=sugg.map(s=>`
+  <div class="sugg-row" onclick="renderSearchResults('${escAttr(s)}')">
+    ${qSvg()}
+    <span class="sugg-text">${esc(s)}</span>
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="transform:rotate(45deg);flex-shrink:0"><path d="M1 9L9 1M9 1H3M9 1v6" stroke="#c7c7cc" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>`).join('')||`<div style="padding:32px 16px;text-align:center;color:#8e8e93;font-size:15px">결과 없음</div>`;
+}
+
+function renderSearchResults(term){
+  go('s-search');
+  const app=APPS[appIdx];
+  const dec=app.decoy;
+  document.getElementById('search-top').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="search-bar" style="flex:1" onclick="renderSearchActive('${escAttr(term)}')">
+        ${qSvg()}
+        <span style="font-size:16px;color:#1c1c1e;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(term)}</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#c7c7cc"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <button class="cancel-btn" onclick="renderSearchIdle()">취소</button>
+    </div>`;
+  /* target app previews */
+  const prevCards=app.prevColors.map(c=>`<div class="result-prev-card" style="background:linear-gradient(160deg,${c[0]},${c[1]});display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${c[2]};text-align:center;padding:12px">${esc(app.name)}</div>`).join('');
+  const decPrevCards=dec.prevColors.slice(0,2).map(c=>`<div class="result-prev-card" style="background:linear-gradient(160deg,${c[0]},${c[1]})"></div>`).join('');
+  document.getElementById('search-body').innerHTML=`
+    <div class="section-hdr">앱</div>
+    <!-- TARGET APP -->
+    <div class="result-row" onclick="selectApp(${app.id})">
+      <div class="result-icon" style="background:linear-gradient(145deg,${app.colors[0]},${app.colors[1]})">${ICONS[app.id]}</div>
+      <div style="flex:1;min-width:0">
+        <div class="result-name">${esc(app.name)}</div>
+        <div class="result-desc">${esc(app.desc)}</div>
+        <div class="result-meta">★ ${app.rating} · ${esc(app.dev)} · ${app.rank} ${esc(app.cat)}</div>
+      </div>
+      <button class="result-get" onclick="event.stopPropagation();selectApp(${app.id})">받기</button>
+    </div>
+    <!-- TARGET PREVIEWS -->
+    <div class="result-prev-row">${prevCards}</div>
+    <!-- DECOY APP -->
+    <div class="result-row">
+      <div class="result-icon" style="background:linear-gradient(145deg,${dec.bg[0]},${dec.bg[1]});font-size:26px">${dec.installed?'⚡':'⬇'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="result-name">${esc(dec.name)}</div>
+        <div class="result-desc">${esc(dec.desc)}</div>
+        <div class="result-meta">${esc(dec.meta)}</div>
+      </div>
+      ${dec.installed
+        ? `<div style="min-width:66px;height:30px;border-radius:999px;background:#e5e5ea;color:#8e8e93;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">열기</div>`
+        : `<button class="result-get" style="background:transparent;border:0;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center">
+             <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="#007AFF" stroke-width="1.5"/><path d="M8.5 13.5l5.5 5.5 5.5-5.5M14 7v13" stroke="#007AFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+           </button>`}
+    </div>
+    <div class="result-prev-row">${decPrevCards}</div>
+  `;
+}
+
+function clrInput(){
+  const i=document.getElementById('real-inp');
+  if(i){i.value='';i.focus();}
+  const c=document.getElementById('clr-btn');
+  if(c) c.style.display='none';
+  renderSuggs('', APPS[appIdx].ac);
+}
+
+/* ═══════════════════════════════════════════
+   APP DETAIL
+═══════════════════════════════════════════ */
+function selectApp(id){
+  const app=APPS[id];
+  appIdx=id;
+  document.getElementById('d-icon').innerHTML=`<div style="width:110px;height:110px;border-radius:26px;background:linear-gradient(145deg,${app.colors[0]},${app.colors[1]});display:flex;align-items:center;justify-content:center;font-size:50px">${ICONS[id]}</div>`;
+  document.getElementById('d-name').textContent=app.name;
+  document.getElementById('d-dev').textContent=app.dev;
+  document.getElementById('d-rating').textContent=app.rating;
+  document.getElementById('d-age').textContent=app.age;
+  document.getElementById('d-rank').textContent=app.rank;
+  document.getElementById('d-cat').textContent=app.cat;
+  document.getElementById('d-news').textContent=app.news;
+  document.getElementById('d-ver').textContent=`${app.ver} • ${app.date}`;
+  const pr=document.getElementById('d-prev-row');
+  pr.innerHTML=app.prevColors.map(c=>`<div class="d-prev-card" style="background:linear-gradient(160deg,${c[0]},${c[1]});display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${c[2]};text-align:center;padding:12px">${esc(app.name)}</div>`).join('');
+  go('s-detail');
+}
+
+/* ═══════════════════════════════════════════
+   DOWNLOAD → LOADING
+═══════════════════════════════════════════ */
+function startDownload(){
+  const app=APPS[appIdx];
+  const condId=ORDER[appIdx]; // Latin square
+  const cond=CONDS[condId];
+  /* fill loading page */
+  document.getElementById('l-icon').innerHTML=`<div style="width:114px;height:114px;border-radius:26px;background:linear-gradient(145deg,${app.colors[0]},${app.colors[1]});display:flex;align-items:center;justify-content:center;font-size:52px">${ICONS[app.id]}</div>`;
+  document.getElementById('l-name').textContent=app.name;
+  document.getElementById('l-sub').textContent=app.desc;
+  document.getElementById('l-rating').textContent=app.rating;
+  document.getElementById('l-age').textContent=app.age;
+  document.getElementById('l-rank').textContent=app.rank;
+  document.getElementById('l-ver').textContent=app.ver;
+  document.getElementById('l-date').textContent=app.date;
+  document.getElementById('l-news').textContent='● '+app.news;
+  document.getElementById('l-prev-row').innerHTML=app.prevColors.map(c=>`<div class="prev-card" style="background:linear-gradient(160deg,${c[0]},${c[1]});color:${c[2]}">${esc(app.name)}</div>`).join('');
+  go('s-loading');
+  if(activeLoader){activeLoader.stop();}
+  activeLoader=new Loader('cv-main',cond.wavy,cond.sched,cond.spin,cond.dur,()=>{
+    const ind=document.querySelector('#s-loading .load-indicator');
+    if(ind) ind.innerHTML='<button style="height:36px;padding:0 22px;border-radius:999px;border:0;background:#007AFF;color:#fff;font-size:16px;font-weight:700;font-family:-apple-system,Helvetica Neue,sans-serif;cursor:default;letter-spacing:-.01em">열기</button>';
+    setTimeout(()=>afterDownload(app,cond),1200);
+  });
+  activeLoader.start();
+}
+
+function afterDownload(app, cond){
+  curAns=ansObj();
+  buildSurvey('s-survey','ml',true);
+  bindLikerts('ml',curAns);
+  const fl=document.getElementById('prog-fill'), lb=document.getElementById('prog-lbl'), tg=document.getElementById('trial-tag');
+  if(fl) fl.style.width=((done.size+1)/8*100)+'%';
+  if(lb) lb.textContent=`${done.size+1} / 8 완료`;
+  if(tg) tg.textContent=`다운로드 ${done.size+1}`;
+  go('s-survey');
+}
+
+/* ═══════════════════════════════════════════
+   SURVEY
+═══════════════════════════════════════════ */
+const QS=[
+  {sec:'시간 지각',     q:'1. 이 로딩 화면은 전체적으로 오래 기다린 것처럼 느껴졌습니다', k:'q1', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'',             q:'2. 실제로 몇 초 정도로 느껴졌는지 적어주세요',                 k:'time'},
+  {sec:'',             q:'3. 기다리는 동안 시간이 얼마나 빠르게 흘렀습니까?',            k:'q2', L:'매우 느리게', R:'매우 빠르게'},
+  {sec:'지각된 속도',   q:'4. 로딩 진행 속도의 변화는 어떻게 느껴졌습니까?',             k:'q3', L:'초반 빠름→후반 느림', R:'초반 느림→후반 빠름'},
+  {sec:'진행 투명성',   q:'5. 로딩이 언제 끝날지 예측할 수 있었습니다',                  k:'q4', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'',             q:'6. 로딩 진행 상황이 명확하게 전달되었습니다',                  k:'q5', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'감정 반응',    q:'7. 기다리는 동안 답답함을 느꼈습니다',                         k:'q6', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'주의 집중',    q:'8. 기다리는 동안 화면에 집중하게 되었습니다',                  k:'q7', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'전반적 평가',  q:'9. 전반적으로 이 로딩 방식은 만족스럽다고 느껴졌습니다',       k:'q8', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'행동 의도',    q:'10. 이 상황에서 앱을 종료하고 싶다는 생각이 들었습니다',        k:'q9', L:'전혀 아니다', R:'매우 그렇다'},
+];
+
+function buildSurvey(screenId, pfx, isMain){
+  const prog=isMain?`<div class="survey-sticky"><div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div><div class="prog-text"><span id="trial-tag">다운로드 1</span><span id="prog-lbl">0 / 8 완료</span></div></div>`:'';
+  const kicker=isMain?`<span id="trial-tag2">다운로드 ${done.size+1}</span>`:'연습 시행';
+  const btnTxt=isMain?'다음으로 이동':'연습 완료 → 실험 시작';
+  const action=isMain?'submitSurvey()':'endPractice()';
+  let body='', li=1;
+  QS.forEach(row=>{
+    if(row.sec) body+=`<div class="sec-lbl">${row.sec}</div>`;
+    if(row.k==='time'){
+      body+=`<div class="q-card"><div class="q-text">${row.q}</div><div class="num-wrap"><input class="num-input" type="number" id="${pfx}-time" placeholder="예: 12" inputmode="numeric"><div class="num-help">정확하지 않아도 괜찮습니다. 체감상 느껴진 시간을 숫자로 입력해주세요.</div></div></div>`;
+    } else {
+      body+=`<div class="q-card"><div class="q-text">${row.q}</div><div class="likert-row" id="${pfx}-${li++}"></div><div class="likert-ends"><span>${row.L}</span><span>${row.R}</span></div></div>`;
+    }
+  });
+  document.getElementById(screenId).innerHTML=`${prog}<div class="s-body"><div class="s-head"><div class="s-kicker">${kicker}</div><div class="s-title">방금 본 로딩 화면을 평가해주세요</div><div class="s-sub">모든 문항은 7점 척도입니다. 양 끝 레이블을 확인하고 응답해주세요.</div></div>${body}<button class="survey-submit" onclick="${action}">${btnTxt}</button></div>`;
+}
+
+function bindLikerts(pfx, store){
+  let li=1;
+  QS.forEach(row=>{
+    if(row.k==='time') return;
+    const id=`${pfx}-${li++}`;
+    const el=document.getElementById(id); if(!el) return;
+    el.innerHTML='';
+    for(let v=1;v<=7;v++){
+      const b=document.createElement('button'); b.type='button'; b.className='lbtn'; b.textContent=v;
+      const key=row.k; const val=v;
+      b.onclick=()=>{el.querySelectorAll('.lbtn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');store[key]=val};
+      el.appendChild(b);
+    }
+  });
+}
+
+function validate(store, timeId){
+  const ks=['q1','q2','q3','q4','q5','q6','q7','q8','q9'];
+  if(ks.some(k=>!store[k])) return '모든 설문 문항에 응답해주세요.';
+  const t=(document.getElementById(timeId)?.value||'').trim();
+  if(!t) return '예상 소요 시간을 입력해주세요.';
+  store.time=t; return null;
+}
+
+function submitSurvey(){
+  const e=validate(curAns,`ml-time`);
+  if(e){alert(e);return}
+  const app=APPS[appIdx];
+  const condId=ORDER[done.size];
+  const cond=CONDS[condId];
+  responses.push({
+    trialOrder:done.size+1, participantId:PID,
+    latinRow:ORDER.map(x=>x+1).join(','),
+    appOrder:appIdx+1, appId:app.id, appName:app.name, appKeyword:app.keyword,
+    condId:cond.id, condLabel:String.fromCharCode(65+condId), condWavy:cond.wavy, condSpin:cond.spin,
+    perceivedDuration:curAns.q1, timeEstimate:curAns.time, speedPerception:curAns.q2,
+    speedPattern:curAns.q3, progressPredictability:curAns.q4, progressClarity:curAns.q5,
+    frustration:curAns.q6, attention:curAns.q7, satisfaction:curAns.q8, exitIntent:curAns.q9
+  });
+  done.add(appIdx);
+  if(done.size>=8){ buildFinalGrids(); go('s-final'); setTimeout(startMiniLoaders,100); }
+  else { appIdx=done.size; renderSearchIdle(); }
+}
+
+/* ═══════════════════════════════════════════
+   FINAL COMPARISON
+═══════════════════════════════════════════ */
+let finalShortSel=null, finalPrefSel=null;
+let miniLoaders=[];
+
+function buildFinalGrids(){
+  buildGrid('grid-short','short');
+  buildGrid('grid-pref','pref');
+}
+function buildGrid(el,type){
+  const g=document.getElementById(el); g.innerHTML='';
+  CONDS.forEach((c,i)=>{
+    const lbl=String.fromCharCode(65+i);
+    const b=document.createElement('button'); b.type='button'; b.className='cond-btn';
+    b.innerHTML=`<strong>로딩 화면 ${lbl}</strong>
+      <div class="mini-wrap">
+        <canvas class="mini-cv" data-ci="${i}" style="width:66px;height:66px"></canvas>
+        <button class="replay-tag" onclick="event.stopPropagation();openReplay(${i})">▶ 다시 보기</button>
+      </div>`;
+    b.onclick=()=>{
+      g.querySelectorAll('.cond-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      if(type==='short') finalShortSel=c.id;
+      else finalPrefSel=c.id;
+    };
+    g.appendChild(b);
+  });
+}
+
+function startMiniLoaders(){
+  miniLoaders.forEach(l=>l.stop());
+  miniLoaders=[];
+  document.querySelectorAll('.mini-cv').forEach(cv=>{
+    const ci=parseInt(cv.dataset.ci);
+    const c=CONDS[ci];
+    const dpr=devicePixelRatio||1, cs=66;
+    cv.style.width=cs+'px'; cv.style.height=cs+'px';
+    cv.width=Math.round(cs*dpr); cv.height=Math.round(cs*dpr);
+    const run=()=>{
+      const l=new Loader(cv,c.wavy,c.sched,c.spin,c.dur,()=>{setTimeout(run,600);});
+      l.R=cs*.34; l.CX=cs/2; l.CY=cs/2;
+      l.start(); miniLoaders.push(l);
+    };
+    run();
+  });
+}
+
+/* REPLAY */
+let replayL=null;
+function openReplay(ci){
+  const c=CONDS[ci], lbl=String.fromCharCode(65+ci);
+  document.getElementById('rk').textContent=`로딩 화면 ${lbl}`;
+  document.getElementById('rt').textContent='다시 보기';
+  document.getElementById('rc').style.display='none';
+  const cv=document.getElementById('cv-replay');
+  const dpr=devicePixelRatio||1, cs=Math.min(innerWidth,innerHeight)*.55;
+  cv.style.width=cs+'px'; cv.style.height=cs+'px';
+  cv.width=Math.round(cs*dpr); cv.height=Math.round(cs*dpr);
+  if(replayL){replayL.stop();}
+  document.getElementById('replay-modal').classList.add('on');
+  replayL=new Loader(cv,c.wavy,c.sched,c.spin,c.dur,()=>{document.getElementById('rc').style.display='block';});
+  replayL.R=cs*.34; replayL.CX=cs/2; replayL.CY=cs/2;
+  replayL.start();
+}
+function closeReplay(){if(replayL)replayL.stop();document.getElementById('replay-modal').classList.remove('on');}
+
+function submitFinal(){
+  if(finalShortSel===null){alert('가장 짧게 느껴진 조건을 선택해주세요.');return}
+  if(finalPrefSel===null){alert('가장 선호하는 조건을 선택해주세요.');return}
+  document.getElementById('done-pid').textContent=`참가자 번호: ${PID}`;
+  go('s-done');
+}
+
+/* ═══════════════════════════════════════════
+   SUBMIT
+═══════════════════════════════════════════ */
+const GAS='https://script.google.com/macros/s/AKfycbyR2nT4M1D46u6AiYQqgv3FD64qrYqlmXR-KlmuYLD_O0rzOwbN7nnVIL9502ULPHeeqg/exec';
+
+async function submitToSheet(){
+  const btn=document.getElementById('submit-btn');
+  const st=document.getElementById('submit-status');
+  const reason=(document.getElementById('reason-txt')?.value||'').trim();
+  btn.disabled=true; btn.textContent='전송 중…'; st.textContent='';
+  const payload={
+    participant_id:PID, order:ORDER.map(x=>x+1).join(','), submitted_at:new Date().toISOString(),
+    final_shortest:finalShortSel, final_preferred:finalPrefSel, reason,
+    trials:responses
+  };
+  try{
+    await fetch(GAS,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    btn.textContent='✓ 제출 완료'; btn.style.background='rgba(36,180,126,.35)';
+    st.textContent='응답이 연구자에게 전달되었습니다. 감사합니다!'; st.style.color='#43e97b';
+  }catch{
+    btn.disabled=false; btn.textContent='응답 데이터 제출';
+    st.textContent='전송 실패 — CSV를 저장해 실험자에게 전달해주세요.'; st.style.color='#ff6b6b';
+  }
+}
+
+function downloadCSV(){
+  const reason=(document.getElementById('reason-txt')?.value||'').trim();
+  const hdr='pid,trial_order,app_order,cond_id,cond_label,cond_wavy,cond_spin,app_name,app_keyword,perceived_duration,time_estimate,speed_perception,speed_pattern,progress_predictability,progress_clarity,frustration,attention,satisfaction,exit_intent\n';
+  const rows=responses.map(r=>`${r.participantId},${r.trialOrder},${r.appOrder},${r.condId},${r.condLabel},${r.condWavy},${r.condSpin},"${String(r.appName).replaceAll('"','""')}","${String(r.appKeyword).replaceAll('"','""')}",${r.perceivedDuration},${r.timeEstimate},${r.speedPerception},${r.speedPattern},${r.progressPredictability},${r.progressClarity},${r.frustration},${r.attention},${r.satisfaction},${r.exitIntent}`).join('\n');
+  const csv=hdr+rows+`\n\nfinal_shortest,final_preferred,reason\n${finalShortSel},${finalPrefSel},"${reason.replaceAll('"','""')}"\n\norder_used\n${ORDER.map(x=>x+1).join(',')}`;
+  const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const u=URL.createObjectURL(b), a=document.createElement('a');
+  a.href=u; a.download=`exp_p${PID}_${Date.now()}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function escAttr(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function qSvg(color='#8e8e93'){return `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><circle cx="6.5" cy="6.5" r="5" stroke="${color}" stroke-width="1.6"/><path d="M10.5 10.5l3 3" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/></svg>`}
+window.addEventListener('DOMContentLoaded',()=>{
+  const startBtn=document.getElementById('start-btn');
+  if(startBtn){
+    startBtn.addEventListener('click',(e)=>{e.preventDefault(); startExp();});
+  }
+  const pidInput=document.getElementById('pid-inp');
+  if(pidInput){
+    pidInput.addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.preventDefault(); startExp();}});
+  }
+});
+
+</script>
+
+</body>
+</html>
