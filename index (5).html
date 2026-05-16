@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>App Loading UX Study</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+:root{--blue:#007AFF;--f:-apple-system,'Helvetica Neue',sans-serif;--bg:#f2f2f7}
+html,body{height:100%;width:100%;font-family:var(--f);background:#000;overflow:hidden;color:#1c1c1e}
+.wrap{position:relative;width:100vw;height:100dvh;max-width:none;margin:0;background:var(--bg);overflow:hidden}
+.scr{display:none;position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;flex-direction:column}
+.scr.on{display:flex}
+
+/* STATUS BAR */
+.sbar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:15px;font-weight:700;background:#fff;flex-shrink:0;border-bottom:.5px solid rgba(0,0,0,.08)}
+
+/* TAB BAR */
+.tabbar{position:sticky;bottom:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:.5px solid rgba(60,60,67,.18);display:flex;align-items:center;padding:8px 0 calc(8px + env(safe-area-inset-bottom));flex-shrink:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0}
+.tab span:first-child{font-size:24px;line-height:1}
+.tab span:last-child{font-size:11px;font-weight:600;color:#8e8e93}
+.tab.on span:last-child{color:var(--blue)}
+
+/* START */
+#s-start{background:var(--bg)}
+.start-inner{padding:20px 16px calc(28px + env(safe-area-inset-bottom))}
+.start-card{background:#fff;border-radius:22px;padding:26px 20px 22px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:#e8f4ff;color:var(--blue);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+h1.start-title{font-size:24px;font-weight:800;line-height:1.35;letter-spacing:-.03em}
+.start-sub{font-size:13.5px;line-height:1.75;color:#6e6e73;margin-top:10px}
+.scenario{background:#f2f2f7;border-radius:14px;padding:14px 15px;margin-top:16px}
+.scenario p{font-size:13px;line-height:1.72;color:#3c3c43}
+.pid-label{font-size:13px;font-weight:700;color:#3c3c43;margin:18px 0 8px;display:block}
+.pid-input{width:100%;height:50px;padding:0 15px;border:1.5px solid #d1d1d6;border-radius:14px;background:#fff;color:#1c1c1e;font-size:16px!important;outline:none;font-family:var(--f);transition:.15s}
+.pid-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.12)}
+.btn-main{width:100%;min-height:52px;border:0;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--blue);color:#fff;margin-top:16px;font-family:var(--f);box-shadow:0 6px 18px rgba(0,122,255,.3)}
+.note{font-size:11.5px;color:#8e8e93;text-align:center;margin-top:10px;line-height:1.6}
+
+/* NOTICE (dark) */
+#s-notice{background:radial-gradient(circle at 50% 35%,rgba(0,122,255,.22),transparent 40%),linear-gradient(180deg,#0b1730,#071022);align-items:center;justify-content:center;text-align:center;color:#fff;gap:12px}
+.nkicker{font-size:12px;font-weight:900;letter-spacing:.16em;color:rgba(143,194,255,.8);text-transform:uppercase}
+.ntitle{font-size:24px;font-weight:800;line-height:1.4;letter-spacing:-.025em}
+.nsub{font-size:14px;color:rgba(255,255,255,.55);line-height:1.72;max-width:300px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--blue);animation:pulse 1.15s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.34;transform:scale(.7)}}
+
+/* APP STORE LOADING PAGE (white) */
+.load-page{background:#fff;flex-direction:column;overflow-y:auto}
+.load-nav{display:flex;justify-content:space-between;align-items:center;padding:calc(14px + env(safe-area-inset-top)) 20px 6px}
+.nav-circle{width:48px;height:48px;border-radius:50%;background:#f2f2f7;border:0;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;color:#1c1c1e}
+.load-hero{display:flex;align-items:center;gap:18px;padding:22px 20px 0}
+.load-icon{width:114px;height:114px;border-radius:26px;flex-shrink:0;overflow:hidden;border:.5px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
+.load-info{flex:1;min-width:0}
+.load-name{font-size:26px;font-weight:900;letter-spacing:-.04em;color:#111}
+.load-sub{font-size:14px;color:#8e8e93;margin-top:4px;line-height:1.4}
+.load-indicator{margin-top:22px;display:flex;align-items:center;min-height:80px}
+.load-stats{display:flex;margin:18px 16px 0;padding:14px 0;border-top:1px solid #f2f2f7;border-bottom:1px solid #f2f2f7}
+.load-stat{flex:1;text-align:center;border-right:1px solid #f2f2f7}
+.load-stat:last-child{border-right:0}
+.load-stat-top{font-size:12px;color:#8e8e93;font-weight:700}
+.load-stat-val{font-size:24px;font-weight:900;color:#8e8e93;margin-top:6px}
+.load-news{padding:22px 20px 0}
+.load-sec-title{font-size:24px;font-weight:900;letter-spacing:-.04em;color:#111}
+.load-news-meta{display:flex;justify-content:space-between;color:#8e8e93;font-size:13px;margin-top:8px}
+.load-news-text{font-size:15px;color:#111;margin-top:14px;line-height:1.6}
+.load-preview{padding:22px 20px 40px}
+.prev-row{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin-top:12px}
+.prev-row::-webkit-scrollbar{display:none}
+.prev-card{flex:0 0 168px;height:298px;border-radius:20px;border:.5px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;text-align:center;padding:16px}
+
+/* SEARCH */
+#s-search{background:#fff;flex-direction:column}
+.search-top{padding:calc(12px + env(safe-area-inset-top)) 14px 10px;background:rgba(255,255,255,.94);backdrop-filter:blur(20px);border-bottom:.5px solid rgba(0,0,0,.1);position:sticky;top:0;z-index:20;flex-shrink:0}
+.search-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.search-title{font-size:30px;font-weight:900;letter-spacing:-.045em;color:#1c1c1e}
+.progress-pill{background:#e8f4ff;color:var(--blue);font-size:12px;font-weight:800;padding:5px 11px;border-radius:999px}
+.search-bar{height:38px;border-radius:11px;background:#e5e5ea;display:flex;align-items:center;gap:8px;padding:0 11px;cursor:text}
+.search-bar input{flex:1;border:0;outline:0;background:transparent;font-size:16px!important;color:#1c1c1e;font-family:var(--f);caret-color:var(--blue);min-width:0}
+.search-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.cancel-btn{border:0;background:transparent;color:var(--blue);font-size:16px;font-weight:500;white-space:nowrap;padding:4px 0 4px 8px;font-family:var(--f);cursor:pointer;flex-shrink:0}
+.sugg-row{display:flex;align-items:center;gap:13px;padding:12px 16px;border-bottom:.5px solid #f2f2f7;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sugg-icon{width:30px;height:30px;border-radius:8px;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sugg-text{font-size:16px;color:#1c1c1e;flex:1}
+.result-row{display:flex;align-items:center;gap:13px;padding:14px 16px;cursor:pointer}
+.result-icon{width:64px;height:64px;border-radius:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12);overflow:hidden}
+.result-name{font-size:17px;font-weight:600;color:#1c1c1e;letter-spacing:-.01em}
+.result-desc{font-size:13px;color:#8e8e93;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-meta{font-size:11.5px;color:#8e8e93;margin-top:3px}
+.result-get{min-width:70px;height:30px;border-radius:999px;border:0;background:#e8f4ff;color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;padding:0 16px;flex-shrink:0;font-family:var(--f)}
+.result-prev-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 16px 14px;border-bottom:.5px solid #f2f2f7}
+.result-prev-row::-webkit-scrollbar{display:none}
+.result-prev-card{flex:0 0 126px;height:224px;border-radius:16px;border:.5px solid rgba(0,0,0,.07)}
+.section-hdr{padding:16px 16px 8px;font-size:19px;font-weight:700;color:#1c1c1e}
+
+/* DETAIL */
+#s-detail{background:#fff;flex-direction:column}
+.detail-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:.5px solid rgba(0,0,0,.06);position:sticky;top:0;z-index:20;flex-shrink:0}
+.detail-back{display:flex;align-items:center;color:var(--blue);font-size:17px;font-weight:500;background:none;border:0;cursor:pointer;padding:4px 0;font-family:var(--f)}
+.detail-scroll{flex:1;overflow-y:auto;padding-bottom:40px}
+.d-hero{padding:20px 16px 0}
+.d-hero-row{display:flex;align-items:flex-start;gap:16px}
+.d-icon{width:110px;height:110px;border-radius:26px;overflow:hidden;flex-shrink:0;border:.5px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
+.d-name{font-size:25px;font-weight:900;letter-spacing:-.04em;color:#111;line-height:1.2}
+.d-dev{font-size:14px;color:#8e8e93;margin-top:5px}
+.d-get{margin-top:12px;height:34px;padding:0 22px;border-radius:999px;border:0;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;font-family:var(--f);box-shadow:0 4px 12px rgba(0,122,255,.3)}
+.d-stats{display:flex;margin:16px 0 0;border-top:1px solid #f2f2f7;border-bottom:1px solid #f2f2f7;padding:12px 0}
+.d-stat{flex:1;text-align:center;border-right:1px solid #F2F2F7;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:10px 4px}
+.d-stat:last-child{border-right:0}
+.d-stat-val{font-size:15px;font-weight:700;color:#1c1c1e}
+.d-stat-sub{font-size:10px;color:#8e8e93;margin-top:2px;text-transform:uppercase}
+.d-sec{padding:16px 16px 0}
+.d-sec-title{font-size:19px;font-weight:700;color:#1c1c1e;margin-bottom:8px}
+.d-news{font-size:13px;line-height:1.65;color:#3c3c43}
+.d-ver{font-size:12px;color:#8e8e93;margin-top:6px}
+.d-prev-row{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-top:8px}
+.d-prev-row::-webkit-scrollbar{display:none}
+.d-prev-card{flex:0 0 148px;height:265px;border-radius:18px;border:.5px solid rgba(0,0,0,.07)}
+
+/* SURVEY */
+.survey-wrap{background:var(--bg);flex-direction:column}
+.survey-sticky{position:sticky;top:0;background:rgba(242,242,247,.93);backdrop-filter:blur(18px);z-index:10;border-bottom:.5px solid rgba(0,0,0,.08);padding:10px 16px 9px;flex-shrink:0}
+.prog-bar{height:5px;background:#e5e5ea;border-radius:999px;overflow:hidden;margin-bottom:6px}
+.prog-fill{height:100%;background:var(--blue);border-radius:999px;transition:width .35s}
+.prog-text{display:flex;justify-content:space-between;font-size:11px;color:#8e8e93}
+.s-body{padding:12px 14px calc(28px + env(safe-area-inset-bottom))}
+.s-head{background:#fff;border-radius:18px;padding:16px 15px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.s-kicker{font-size:11px;font-weight:900;letter-spacing:.14em;color:var(--blue);text-transform:uppercase}
+.s-title{font-size:19px;font-weight:800;letter-spacing:-.02em;color:#1c1c1e;margin-top:6px}
+.s-sub{font-size:12px;line-height:1.65;color:#8e8e93;margin-top:5px}
+.sec-lbl{display:flex;align-items:center;gap:7px;margin:18px 2px 5px;font-size:11px;font-weight:700;color:#8e8e93;letter-spacing:.06em;text-transform:uppercase}
+.sec-lbl::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.q-card{background:#fff;border-radius:16px;padding:15px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.q-text{font-size:14px;font-weight:600;line-height:1.55;color:#1c1c1e;margin-bottom:12px;letter-spacing:-.01em}
+.likert-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.lbtn{aspect-ratio:1;min-height:40px;border:.5px solid rgba(0,0,0,.16);border-radius:10px;background:#fff;color:#3c3c43;font-weight:700;font-size:14.5px;cursor:pointer;font-family:var(--f)}
+.lbtn.sel{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(0,122,255,.28)}
+.likert-ends{display:flex;justify-content:space-between;font-size:10.5px;color:#8e8e93;margin-top:5px}
+.num-wrap{width:100%}
+.num-input{width:100%;height:46px;padding:0 14px;border:1.5px solid #d1d1d6;border-radius:13px;background:#fff;font-size:16px!important;font-family:var(--f);outline:none}
+.num-input:focus{border-color:var(--blue)}
+.num-help{font-size:11px;color:#8e8e93;margin-top:6px;line-height:1.5}
+.survey-submit{width:100%;min-height:52px;border:0;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--blue);color:#fff;font-family:var(--f);box-shadow:0 6px 18px rgba(0,122,255,.3);margin-top:6px;display:flex;align-items:center;justify-content:center}
+
+/* FINAL */
+#s-final{background:var(--bg)}
+.final-inner{padding:14px 14px calc(28px + env(safe-area-inset-bottom))}
+.final-head{background:#fff;border-radius:20px;padding:18px 16px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.cond-btn{width:100%;padding:13px;border:1.5px solid #d1d1d6;border-radius:16px;background:#fff;text-align:left;cursor:pointer;margin-bottom:8px;font-family:var(--f);display:block}
+.cond-btn.sel{border-color:var(--blue);background:#e8f4ff}
+.cond-btn strong{display:block;font-size:14px;font-weight:700;color:#1c1c1e;margin-bottom:8px}
+.mini-wrap{height:72px;background:#f7f9ff;border-radius:11px;border:1px solid #e5effc;display:flex;align-items:center;justify-content:center;position:relative}
+.replay-tag{position:absolute;right:8px;top:6px;background:#e8f4ff;color:var(--blue);font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;cursor:pointer;border:0;font-family:var(--f)}
+.final-ta{width:100%;min-height:90px;padding:13px;border:1.5px solid #d1d1d6;border-radius:14px;font-size:14px;line-height:1.65;resize:vertical;outline:none;background:#fff;font-family:var(--f)}
+.final-ta:focus{border-color:var(--blue)}
+
+/* DONE */
+#s-done{background:radial-gradient(circle at 50% 35%,rgba(0,122,255,.18),transparent 34%),linear-gradient(180deg,#0b1730,#071022);align-items:center;justify-content:center;color:#fff}
+.done-glass{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:28px 22px;text-align:center;width:calc(100% - 32px);max-width:360px}
+.done-icon{width:76px;height:76px;border-radius:50%;background:rgba(0,122,255,.18);border:2px solid rgba(0,122,255,.4);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto}
+.done-title{font-size:24px;font-weight:800;color:#fff;margin-top:14px}
+.done-sub{font-size:14px;line-height:1.75;color:rgba(255,255,255,.58);margin-top:8px}
+.done-btn{width:100%;min-height:50px;border-radius:14px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--f);display:flex;align-items:center;justify-content:center;margin-top:10px}
+.done-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 6px 18px rgba(0,122,255,.3)}
+
+/* REPLAY MODAL */
+#replay-modal{display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 35%,rgba(0,122,255,.18),transparent 34%),linear-gradient(180deg,#0b1730,#071022);flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;text-align:center;padding:28px}
+#replay-modal.on{display:flex}
+.replay-kicker{font-size:11px;font-weight:900;letter-spacing:.16em;color:rgba(143,194,255,.8);text-transform:uppercase}
+.replay-title{font-size:20px;font-weight:800}
+.replay-close{padding:13px 32px;border:1.5px solid rgba(255,255,255,.2);border-radius:16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--f);margin-top:6px;display:none}
+
+
+.open-after-download{
+  height:30px;
+  min-width:70px;
+  padding:0 18px;
+  border-radius:999px;
+  border:0;
+  background:#007AFF;
+  color:#fff;
+  font-size:15px;
+  font-weight:800;
+  font-family:var(--f);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 4px 12px rgba(0,122,255,.25);
+}
+
+
+/* ═══════════════════════════════════════════
+   UI QUALITY ONLY OVERRIDES
+   로딩 애니메이션/타이밍/크기/파형 관련 코드는 변경하지 않음
+═══════════════════════════════════════════ */
+:root{
+  --blue:#007AFF;
+  --bg:#F2F2F7;
+  --card:#FFFFFF;
+  --soft:#F8F8FA;
+  --text-main:#1C1C1E;
+  --text-sub:#8E8E93;
+  --hairline:rgba(0,0,0,.08);
+  --shadow-soft:0 8px 24px rgba(0,0,0,.055);
+  --shadow-blue:0 8px 22px rgba(0,122,255,.25);
+}
+
+/* 전체 화면 전환감 */
+.scr{
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .28s ease, transform .28s ease;
+}
+.scr.on{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* 시작 화면 */
+.start-inner{
+  padding:22px 16px calc(30px + env(safe-area-inset-bottom));
+}
+.start-card{
+  border-radius:28px;
+  padding:30px 22px 24px;
+  border:.5px solid var(--hairline);
+  box-shadow:var(--shadow-soft);
+}
+.badge{
+  background:linear-gradient(135deg,#E8F4FF,#F7FBFF);
+  border:.5px solid rgba(0,122,255,.14);
+}
+h1.start-title{
+  font-size:27px;
+  letter-spacing:-.045em;
+}
+.start-sub{
+  font-size:14px;
+}
+.scenario{
+  background:linear-gradient(180deg,#F8F8FA,#F2F2F7);
+  border:.5px solid rgba(0,0,0,.05);
+}
+
+/* 버튼 */
+.btn-main,
+.survey-submit,
+.done-btn.primary{
+  border-radius:16px;
+  box-shadow:var(--shadow-blue);
+  transition:transform .1s ease, opacity .1s ease, box-shadow .15s ease;
+}
+.btn-main:active,
+.survey-submit:active,
+.done-btn.primary:active,
+.result-get:active,
+.d-get:active{
+  transform:scale(.985);
+  opacity:.9;
+}
+
+/* 입력 */
+.pid-input,
+.num-input,
+.final-ta{
+  background:#F8F8FA;
+  border:.8px solid #DADAE0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.pid-input:focus,
+.num-input:focus,
+.final-ta:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(0,122,255,.12);
+}
+
+/* 검색/상세 상단 */
+.search-top,
+.detail-nav{
+  background:rgba(255,255,255,.84)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  backdrop-filter:blur(18px) saturate(180%);
+}
+.search-bar{
+  background:#EFEFF4;
+  border:.5px solid rgba(0,0,0,.05);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
+}
+.progress-pill{
+  background:linear-gradient(135deg,#E8F4FF,#F7FBFF);
+  border:.5px solid rgba(0,122,255,.14);
+}
+
+/* 검색 결과 카드감 */
+.result-row{
+  margin:0 10px;
+  border-radius:18px;
+  transition:background .12s ease, transform .12s ease;
+}
+.result-row:active{
+  background:#F2F2F7;
+  transform:scale(.995);
+}
+.result-icon,
+.d-icon,
+.load-icon{
+  box-shadow:0 8px 20px rgba(0,0,0,.14);
+}
+.result-prev-card,
+.d-prev-card,
+.prev-card{
+  box-shadow:0 4px 14px rgba(0,0,0,.045);
+}
+
+/* 상세 화면 */
+.d-get{
+  border-radius:999px;
+  box-shadow:0 6px 16px rgba(0,122,255,.24);
+}
+.d-stats{
+  border-color:#EFEFF4;
+}
+
+/* 설문 화면 */
+.survey-sticky{
+  background:rgba(242,242,247,.86)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  backdrop-filter:blur(18px) saturate(180%);
+}
+.s-head,
+.q-card,
+.final-head{
+  border:.5px solid var(--hairline);
+  box-shadow:var(--shadow-soft);
+}
+.s-head{
+  border-radius:20px;
+}
+.q-card{
+  border-radius:18px;
+  padding:17px 15px;
+}
+.q-text{
+  font-size:15px;
+  line-height:1.58;
+}
+.lbtn{
+  border-radius:12px;
+  background:#F8F8FA;
+  transition:transform .08s ease, background .12s ease, border-color .12s ease;
+}
+.lbtn:active{
+  transform:scale(.95);
+}
+
+/* 1-4-7 척도 기준 표시 */
+.likert-ends{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  align-items:center;
+  gap:4px;
+  margin-top:7px;
+}
+.likert-ends::after{
+  content:"4: 보통이다";
+  grid-column:2;
+  grid-row:1;
+  text-align:center;
+  color:#8E8E93;
+}
+.likert-ends span:first-child{
+  grid-column:1;
+  text-align:left;
+}
+.likert-ends span:last-child{
+  grid-column:3;
+  text-align:right;
+}
+
+/* 최종 비교 */
+.cond-btn{
+  border-radius:18px;
+  border:.8px solid #DADAE0;
+  box-shadow:0 3px 12px rgba(0,0,0,.035);
+  transition:transform .1s ease, background .12s ease, border-color .12s ease;
+}
+.cond-btn:active{
+  transform:scale(.992);
+}
+.cond-btn.sel{
+  background:linear-gradient(135deg,#E8F4FF,#F7FBFF);
+  box-shadow:0 5px 16px rgba(0,122,255,.12);
+}
+
+/* 완료 화면 */
+.done-glass{
+  background:rgba(255,255,255,.09);
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+  border:.8px solid rgba(255,255,255,.16);
+  box-shadow:0 18px 42px rgba(0,0,0,.25);
+}
+.done-icon{
+  box-shadow:0 8px 28px rgba(0,122,255,.22);
+}
+
+/* 로딩 완료 후 열기 버튼: 모양만 고급화, 동작/타이밍 변경 없음 */
+.open-after-download{
+  height:34px;
+  padding:0 20px;
+  border:0;
+  border-radius:999px!important;
+  background:#007AFF;
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+  font-family:-apple-system,'Helvetica Neue',sans-serif;
+  letter-spacing:-.01em;
+  margin-top:12px;
+  display:inline-flex;
+  align-items:center;
+  box-shadow:0 4px 12px rgba(0,122,255,.28)!important;
+  cursor:default;
+}
+
+/* ICONS */
+.icon-svg{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+
+/* ═══════════════════════════════════════════
+   SURVEY LAYOUT FIX
+   설문 1~7 버튼이 모바일에서 가로로 밀리지 않도록 고정
+═══════════════════════════════════════════ */
+html, body, .wrap, .scr, .survey-wrap, .s-body{
+  max-width:100vw!important;
+  overflow-x:hidden!important;
+}
+
+.survey-wrap{
+  background:#F2F2F7!important;
+}
+
+.s-body{
+  padding:12px 14px calc(28px + env(safe-area-inset-bottom))!important;
+}
+
+.s-head{
+  border-radius:18px!important;
+  padding:16px 15px!important;
+}
+
+.q-card{
+  width:100%!important;
+  max-width:100%!important;
+  border-radius:16px!important;
+  padding:15px 14px!important;
+  overflow:hidden!important;
+}
+
+.q-text{
+  font-size:14px!important;
+  line-height:1.55!important;
+  margin-bottom:12px!important;
+  word-break:keep-all!important;
+}
+
+.likert-row{
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  gap:4px!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow:visible!important;
+}
+
+.lbtn{
+  width:100%!important;
+  height:40px!important;
+  min-height:40px!important;
+  aspect-ratio:auto!important;
+  border-radius:10px!important;
+  font-size:14.5px!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+
+.likert-ends{
+  display:grid!important;
+  grid-template-columns:1fr 1fr 1fr!important;
+  font-size:10.5px!important;
+  margin-top:6px!important;
+  width:100%!important;
+}
+
+.likert-ends span:first-child{
+  grid-column:1!important;
+  text-align:left!important;
+}
+
+.likert-ends::after{
+  content:"4: 보통이다"!important;
+  grid-column:2!important;
+  text-align:center!important;
+  color:#8E8E93!important;
+}
+
+.likert-ends span:last-child{
+  grid-column:3!important;
+  text-align:right!important;
+}
+
+.num-input{
+  height:46px!important;
+  font-size:16px!important;
+}
+
+@media (max-width:380px){
+  .lbtn{
+    height:36px!important;
+    min-height:36px!important;
+    font-size:13px!important;
+    border-radius:9px!important;
+  }
+  .q-card{
+    padding:14px 12px!important;
+  }
+}
+
+
+/* 속도 변화 문항만 가운데 기준 변경 */
+.likert-ends.speed-mid::after{
+  content:"4: 일관적이다"!important;
+}
+
+/* ═══════════════════════════════════════════
+   PREMIUM QUALITY v3 — 로딩 UI 무관
+═══════════════════════════════════════════ */
+:root{
+  --blue:#007AFF;
+  --green:#34C759;
+  --purple:#5856D6;
+  --bg:#F2F2F7;
+  --card:#FFFFFF;
+  --text:#1C1C1E;
+  --text2:#3C3C43;
+  --sub:#8E8E93;
+  --sub2:#AEAEB2;
+  --hairline:rgba(60,60,67,.12);
+  --sh-sm:0 2px 8px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sh-md:0 4px 16px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --sh-blue:0 6px 20px rgba(0,122,255,.3),0 2px 6px rgba(0,122,255,.15);
+}
+*{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+/* ── START ── */
+#s-start{
+  background:linear-gradient(160deg,#EBF2FF 0%,#EEE8FF 38%,#F5F5FA 100%);
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+#s-start::before,#s-start::after{
+  content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+}
+#s-start::before{
+  width:320px;height:320px;top:-80px;right:-80px;
+  background:radial-gradient(circle,rgba(0,122,255,.13),transparent 70%);
+}
+#s-start::after{
+  width:240px;height:240px;bottom:100px;left:-70px;
+  background:radial-gradient(circle,rgba(88,86,214,.1),transparent 70%);
+}
+.start-inner{
+  padding:0 18px calc(40px + env(safe-area-inset-bottom));
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;
+  justify-content:center;
+  min-height:100%;
+  padding-top:calc(40px + env(safe-area-inset-top));
+}
+.start-hero{
+  display:flex;flex-direction:column;align-items:center;
+  gap:12px;padding-bottom:24px;text-align:center;
+}
+.start-icon{
+  width:90px;height:90px;border-radius:22px;
+  background:linear-gradient(145deg,#1C86FF,#5856D6);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 14px 36px rgba(0,122,255,.38),0 4px 12px rgba(88,86,214,.2),inset 0 1px 0 rgba(255,255,255,.22);
+}
+.start-hero-title{
+  font-size:28px;font-weight:900;letter-spacing:-.05em;
+  color:#1C1C1E;line-height:1.2;margin-top:2px;
+}
+.start-hero-sub{
+  font-size:14px;color:#8E8E93;margin-top:4px;letter-spacing:-.01em;
+}
+.start-card{
+  background:#fff;border-radius:24px;
+  padding:22px 20px 20px;
+  box-shadow:0 2px 0 rgba(255,255,255,.8) inset,
+             0 6px 24px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.04);
+  border:0.5px solid rgba(0,0,0,.07);
+  position:relative;overflow:hidden;
+}
+.start-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
+  background:linear-gradient(90deg,#007AFF,#5AC8FA,#34C759,#5856D6,#007AFF);
+  background-size:300% 100%;
+  animation:flow 4s linear infinite;
+}
+@keyframes flow{0%{background-position:100% 0}100%{background-position:-200% 0}}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:999px;
+  background:rgba(0,122,255,.08);
+  border:1px solid rgba(0,122,255,.14);
+  color:#007AFF;font-size:10px;font-weight:800;
+  letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;
+}
+h1.start-title{
+  font-size:26px;font-weight:900;letter-spacing:-.045em;line-height:1.25;color:#1C1C1E;margin-bottom:8px;
+}
+.start-sub{
+  font-size:13.5px;line-height:1.75;color:#6E6E73;margin-top:0;
+}
+.scenario{
+  background:linear-gradient(135deg,#F5FAFF,#EFF6FF);
+  border-left:3px solid #007AFF;border-radius:0 12px 12px 0;
+  padding:12px 14px;margin-top:16px;
+}
+.scenario p{font-size:13px;line-height:1.76;color:#3C3C43}
+.scenario b{color:#007AFF}
+.pid-label{
+  display:block;font-size:11px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:#8E8E93;margin:20px 0 8px;
+}
+.pid-input{
+  width:100%;height:52px;padding:0 16px;
+  border:1.5px solid #E5E5EA;border-radius:14px;
+  background:#FAFAFA;color:#1C1C1E;
+  font-size:16px!important;outline:none;font-family:inherit;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.04);
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.pid-input:focus{
+  border-color:#007AFF;background:#fff;
+  box-shadow:0 0 0 4px rgba(0,122,255,.1),inset 0 1px 2px rgba(0,0,0,.02);
+}
+.pid-input::placeholder{color:#C7C7CC}
+.btn-main{
+  width:100%;min-height:54px;border:0;border-radius:16px;
+  font-size:17px;font-weight:800;cursor:pointer;
+  background:linear-gradient(175deg,#1C8AFF,#007AFF 60%,#006EE6);
+  color:#fff;margin-top:14px;font-family:inherit;letter-spacing:-.02em;
+  box-shadow:0 7px 22px rgba(0,122,255,.38),0 2px 6px rgba(0,122,255,.2),
+             inset 0 1px 0 rgba(255,255,255,.18);
+  transition:transform .12s,box-shadow .15s,opacity .12s;
+}
+.btn-main:active{transform:scale(.975);opacity:.94;box-shadow:0 3px 10px rgba(0,122,255,.25)}
+.note{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  font-size:11.5px;color:#C7C7CC;margin-top:12px;
+}
+
+/* ── TAB BAR ── */
+.tab-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.tab-icon svg{display:block;transition:transform .12s cubic-bezier(.34,1.56,.64,1)}
+.tab .tab-label{font-size:10px;font-weight:600;color:#8e8e93;transition:color .15s}
+.tab.on .tab-label{color:var(--blue);font-weight:700}
+.tab:active .tab-icon svg{transform:scale(.82)}
+.tab .tab-icon svg{color:#8e8e93;transition:color .15s}
+.tab.on .tab-icon svg{color:var(--blue)}
+
+/* ── SEARCH ── */
+.search-top{
+  background:rgba(255,255,255,.88)!important;
+  backdrop-filter:blur(20px) saturate(180%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(180%)!important;
+}
+.search-bar{
+  background:#EFEFF4;border-radius:12px;height:40px;
+  border:0.5px solid rgba(0,0,0,.05);gap:8px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.search-bar input::placeholder{color:#AEAEB2}
+.section-hdr{font-size:20px;font-weight:800;letter-spacing:-.035em;padding:16px 16px 8px;color:#1C1C1E}
+.result-row{border-radius:16px;margin:0 8px;transition:background .1s}
+.result-row:active{background:#F2F2F7}
+.result-name{font-size:16px;font-weight:700;letter-spacing:-.025em;color:#1C1C1E;line-height:1.2}
+.result-desc{font-size:12.5px;color:#8E8E93;margin-top:2px}
+.result-meta{font-size:11px;color:#C7C7CC;margin-top:3px}
+.result-get{
+  min-width:72px;height:30px;border-radius:999px;
+  background:rgba(0,122,255,.1);color:#007AFF;
+  font-size:14px;font-weight:700;border:0;cursor:pointer;font-family:inherit;
+  transition:opacity .1s,transform .1s;
+}
+.result-get:active{opacity:.78;transform:scale(.94)}
+.sugg-row{transition:background .1s}
+.sugg-row:active{background:#F2F2F7}
+.sugg-icon{background:#F2F2F7;border-radius:9px}
+.sugg-text{font-size:16px;color:#1C1C1E}
+.cancel-btn{font-size:16px;font-weight:500;color:#007AFF}
+.progress-pill{
+  background:rgba(0,122,255,.09);color:#007AFF;
+  font-size:12px;font-weight:800;padding:5px 12px;
+  border-radius:999px;border:1px solid rgba(0,122,255,.13);
+}
+
+/* ── DETAIL ── */
+.detail-nav{
+  background:rgba(255,255,255,.88)!important;
+  backdrop-filter:blur(20px) saturate(180%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(180%)!important;
+  border-bottom:0.5px solid rgba(60,60,67,.1)!important;
+}
+.d-name{font-size:24px;font-weight:900;letter-spacing:-.05em;line-height:1.15;color:#1C1C1E}
+.d-dev{color:#8E8E93;font-size:13px;margin-top:4px}
+.d-get{
+  background:linear-gradient(175deg,#1C8AFF,#007AFF)!important;
+  border:0!important;
+  box-shadow:0 4px 14px rgba(0,122,255,.3)!important;
+  transition:opacity .12s,transform .12s!important;
+}
+.d-get:active{opacity:.88!important;transform:scale(.95)!important}
+.d-stat-val{font-size:17px;font-weight:800;color:#1C1C1E;letter-spacing:-.02em}
+.d-stat-top{font-size:10.5px;font-weight:600;letter-spacing:.02em;color:#8E8E93;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-stat-sub{font-size:9.5px;font-weight:600;letter-spacing:.04em;color:#8E8E93;margin-top:3px;text-transform:uppercase}
+.d-stats{border-color:#F2F2F7!important}
+.d-sec-title{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:10px;color:#1C1C1E}
+.d-news{font-size:13.5px;line-height:1.72;color:#3C3C43}
+.d-ver{font-size:12px;color:#8E8E93;margin-top:5px}
+.d-prev-card{border-radius:20px!important;box-shadow:0 4px 16px rgba(0,0,0,.08)!important}
+.result-prev-card{border-radius:16px!important;box-shadow:0 3px 12px rgba(0,0,0,.07)!important}
+
+/* ── LOADING PAGE COSMETICS (캔버스/타이밍 건드리지 않음) ── */
+.load-name{font-size:24px;font-weight:900;letter-spacing:-.045em;color:#1C1C1E}
+.load-sub{color:#8E8E93;font-size:13px;margin-top:3px}
+.load-stat-val{font-size:22px!important;font-weight:900!important;color:#1C1C1E!important;letter-spacing:-.03em!important;margin-top:4px}
+.load-stat-top{font-size:10.5px;font-weight:600;color:#8E8E93;letter-spacing:.02em}
+.load-stats{border-color:#F2F2F7!important}
+.load-sec-title{font-size:22px;font-weight:900;letter-spacing:-.04em;color:#1C1C1E}
+.load-news-meta{font-size:12.5px;color:#8E8E93;margin-top:7px}
+.load-news-text{font-size:14px;line-height:1.72;color:#3C3C43;margin-top:12px}
+.prev-card{border-radius:20px!important;box-shadow:0 4px 14px rgba(0,0,0,.07)!important}
+.nav-circle{background:#F2F2F7!important;border-radius:50%;transition:background .1s,transform .1s}
+.nav-circle:active{background:#E5E5EA!important;transform:scale(.91)}
+
+/* ── SURVEY ── */
+.survey-wrap{background:#F2F2F7!important}
+.survey-sticky{
+  background:rgba(242,242,247,.92)!important;
+  backdrop-filter:blur(20px) saturate(180%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(180%)!important;
+  border-bottom:0.5px solid rgba(60,60,67,.1)!important;
+  padding:10px 16px 11px!important;
+}
+.prog-bar{height:4px;background:#E5E5EA;border-radius:999px;overflow:hidden;margin-bottom:0}
+.prog-fill{background:linear-gradient(90deg,#007AFF,#34C759);height:100%;transition:width .55s cubic-bezier(.25,.46,.45,.94)}
+.prog-text{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:#8E8E93;margin-top:5px}
+.s-body{padding:12px 14px calc(32px + env(safe-area-inset-bottom))!important}
+.s-head{
+  background:#fff;border-radius:20px!important;padding:18px 16px!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.03)!important;
+  border:0.5px solid rgba(0,0,0,.06)!important;margin-bottom:10px;
+}
+.s-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#007AFF;margin-bottom:6px}
+.s-title{font-size:19px;font-weight:800;letter-spacing:-.03em;line-height:1.35;color:#1C1C1E}
+.s-sub{font-size:12.5px;line-height:1.7;color:#8E8E93;margin-top:5px}
+.sec-lbl{
+  display:flex;align-items:center;gap:7px;
+  margin:20px 2px 7px;font-size:10px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;color:#8E8E93;
+}
+.sec-lbl::before{content:'';width:5px;height:5px;border-radius:50%;background:#007AFF;flex-shrink:0}
+.q-card{
+  background:#fff;border-radius:18px!important;padding:16px 15px!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.03)!important;
+  border:0.5px solid rgba(0,0,0,.06)!important;margin-bottom:8px;
+}
+.q-text{font-size:14.5px!important;font-weight:600;letter-spacing:-.01em;line-height:1.58!important;color:#1C1C1E;margin-bottom:14px!important}
+.likert-row{gap:5px!important}
+.lbtn{
+  background:#F5F5F7!important;
+  border:1px solid rgba(0,0,0,.09)!important;
+  border-radius:12px!important;
+  height:42px!important;min-height:42px!important;aspect-ratio:auto!important;
+  font-size:15px!important;font-weight:700;color:#3C3C43;
+  box-shadow:0 1px 3px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9)!important;
+  transition:all .09s ease!important;
+}
+.lbtn:active:not(.sel){transform:scale(.91)!important}
+.lbtn.sel{
+  background:linear-gradient(175deg,#1C8AFF,#007AFF)!important;
+  border-color:#007AFF!important;color:#fff!important;
+  box-shadow:0 4px 14px rgba(0,122,255,.3),inset 0 1px 0 rgba(255,255,255,.2)!important;
+  transform:scale(1.04)!important;
+}
+.likert-ends{font-size:10px!important;color:#AEAEB2!important;margin-top:7px!important}
+.num-input{
+  background:#FAFAFA;border:1.5px solid #E5E5EA;border-radius:13px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.04);
+  transition:border-color .2s,box-shadow .2s,background .2s;font-weight:500;
+}
+.num-input:focus{border-color:#007AFF;background:#fff;box-shadow:0 0 0 4px rgba(0,122,255,.1)}
+.num-help{font-size:11.5px;color:#AEAEB2;line-height:1.6;margin-top:6px}
+.survey-submit{
+  width:100%;min-height:54px;border:0;border-radius:16px;
+  font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:-.02em;
+  background:linear-gradient(175deg,#1C8AFF,#007AFF 60%,#006EE6);color:#fff;
+  box-shadow:0 7px 22px rgba(0,122,255,.38),inset 0 1px 0 rgba(255,255,255,.18);
+  margin-top:8px;transition:transform .12s,box-shadow .15s,opacity .12s;
+}
+.survey-submit:active{transform:scale(.975);opacity:.94;box-shadow:0 3px 10px rgba(0,122,255,.25)}
+
+/* ── FINAL ── */
+#s-final{background:#F2F2F7}
+.final-head{
+  background:#fff;border-radius:20px!important;padding:18px 16px!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.03)!important;
+  border:0.5px solid rgba(0,0,0,.06)!important;
+}
+.cond-btn{
+  background:#fff;border:1px solid rgba(0,0,0,.09)!important;border-radius:18px!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.04)!important;
+  transition:transform .1s,background .1s,border-color .1s,box-shadow .1s!important;
+}
+.cond-btn:active{transform:scale(.99)!important}
+.cond-btn.sel{
+  background:linear-gradient(135deg,#EBF4FF,#EEE8FF)!important;
+  border-color:rgba(0,122,255,.22)!important;
+  box-shadow:0 4px 16px rgba(0,122,255,.11)!important;
+}
+.cond-btn strong{font-size:13.5px;font-weight:800;color:#1C1C1E;display:block;margin-bottom:8px}
+.mini-wrap{background:linear-gradient(135deg,#F4F8FF,#EFF3FF);border:1px solid rgba(0,122,255,.1)!important;border-radius:12px}
+.replay-tag{font-size:9.5px;font-weight:800;background:rgba(0,122,255,.1);color:#007AFF;border-radius:7px;padding:3px 8px;border:0;cursor:pointer;font-family:inherit}
+.final-ta{
+  background:#FAFAFA;border:1.5px solid #E5E5EA;border-radius:16px;
+  font-size:14.5px;line-height:1.7;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.03);
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.final-ta:focus{border-color:#007AFF;background:#fff;box-shadow:0 0 0 4px rgba(0,122,255,.1)}
+
+/* ── DONE ── */
+#s-done{
+  background:
+    radial-gradient(ellipse at 25% 15%,rgba(0,122,255,.18),transparent 55%),
+    radial-gradient(ellipse at 75% 85%,rgba(88,86,214,.14),transparent 55%),
+    linear-gradient(160deg,#07101F,#040B16);
+}
+.done-glass{
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  border:1px solid rgba(255,255,255,.1);border-radius:28px!important;
+  padding:32px 22px!important;
+  box-shadow:0 32px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);
+}
+.done-icon{
+  width:84px;height:84px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,rgba(0,122,255,.4),rgba(88,86,214,.25));
+  border:1.5px solid rgba(0,122,255,.4);
+  box-shadow:0 8px 32px rgba(0,122,255,.28),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.done-title{font-size:26px;font-weight:900;letter-spacing:-.045em;color:#fff;margin-top:16px}
+.done-sub{font-size:14px;line-height:1.8;color:rgba(255,255,255,.48);margin-top:8px}
+.done-btn{
+  min-height:52px;border-radius:16px;font-size:15px;font-weight:700;
+  letter-spacing:-.01em;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:opacity .12s,transform .12s;
+}
+.done-btn:active{opacity:.83;transform:scale(.972)}
+.done-btn.primary{
+  background:linear-gradient(175deg,#1C8AFF,#007AFF 60%,#006EE6);
+  border:0!important;font-size:16px;font-weight:800;
+  box-shadow:0 7px 22px rgba(0,122,255,.38),inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* ── REPLAY MODAL ── */
+#replay-modal{
+  background:
+    radial-gradient(ellipse at 50% 30%,rgba(0,122,255,.15),transparent 50%),
+    linear-gradient(160deg,#07101F,#040B16)!important;
+}
+.replay-kicker{
+  background:rgba(0,122,255,.14);border:1px solid rgba(0,122,255,.2);
+  padding:5px 14px;border-radius:999px;
+  font-size:10.5px;font-weight:800;letter-spacing:.14em;
+}
+.replay-title{font-size:22px;font-weight:800;letter-spacing:-.03em;color:#fff}
+.replay-close{
+  font-size:15px;font-weight:700;letter-spacing:-.01em;
+  border-radius:16px;padding:14px 36px;cursor:pointer;font-family:inherit;
+  transition:opacity .12s,transform .12s;
+}
+.replay-close:active{opacity:.82;transform:scale(.97)}
+
+/* ── LAYOUT FIX (유지) ── */
+html,body,.wrap,.scr,.survey-wrap,.s-body{max-width:100vw!important;overflow-x:hidden!important}
+.survey-wrap{background:#F2F2F7!important}
+.s-body{padding:12px 14px calc(28px + env(safe-area-inset-bottom))!important}
+.s-head{border-radius:18px!important;padding:16px 15px!important}
+.q-card{width:100%!important;max-width:100%!important;overflow:hidden!important}
+.q-text{font-size:14px!important;line-height:1.55!important;margin-bottom:12px!important;word-break:keep-all!important}
+.likert-row{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:4px!important;width:100%!important}
+.lbtn{width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important}
+@media(max-width:380px){.lbtn{height:36px!important;min-height:36px!important;font-size:13px!important;border-radius:9px!important}.q-card{padding:14px 12px!important}}
+.likert-ends span:first-child{grid-column:1!important;text-align:left!important}
+.likert-ends::after{content:"4: 보통이다"!important;grid-column:2!important;text-align:center!important;color:#AEAEB2!important}
+.likert-ends span:last-child{grid-column:3!important;text-align:right!important}
+.likert-ends.speed-mid::after{content:"4: 일관적이다"!important}
+
+</style>
+
+
+</head>
+<body>
+<div class="wrap">
+
+
+
+
+<div id="s-start" class="scr on">
+<div class="start-inner">
+  <div class="start-card">
+    <div class="badge">
+      <svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#007AFF"/></svg>
+      Research Prototype
+    </div>
+    <h1 class="start-title">App Store<br>다운로드 경험 연구</h1>
+    <p class="start-sub">App Store에서 앱을 다운로드할 때 나타나는 <b style="color:#1C1C1E;font-weight:700">로딩 화면</b>이 사용자 경험에 미치는 영향을 연구합니다.</p>
+    <div class="scenario">
+      <p>App Store <b>검색 탭</b>에서 지정된 앱을 직접 검색하고 <b>"받기"</b>를 눌러 다운로드하는 상황입니다. 다운로드 중 나타나는 로딩 화면을 관찰한 뒤 설문에 응답해주세요. 총 8개 앱을 완료합니다.</p>
+    </div>
+    <label class="pid-label">참가자 번호</label>
+    <input class="pid-input" id="pid-inp" type="number" inputmode="numeric" placeholder="실험자에게 안내받은 번호 입력" min="1">
+    <button class="btn-main" id="start-btn" type="button" onclick="startExp()">App Store로 이동하기 →</button>
+    <p class="note">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#C7C7CC" stroke-width="1.4"/><path d="M8 7v4M8 5.5v.01" stroke="#C7C7CC" stroke-width="1.5" stroke-linecap="round"/></svg>
+      브라우저 뒤로가기나 새로고침을 누르지 마세요.
+    </p>
+  </div>
+</div>
+</div>
+
+<!-- ② NOTICE -->
+
+<div id="s-notice" class="scr">
+  <div class="nkicker">Practice Trial</div>
+  <div class="ntitle">연습 시행을 시작합니다</div>
+  <div class="nsub">연습 앱에서는 로딩 화면이 제시됩니다. 연습 후 실제 실험이 시작됩니다.</div>
+  <div class="pulse"></div>
+</div>
+
+<!-- ③ PRACTICE LOADING -->
+
+<div id="s-pload" class="scr load-page">
+  <div class="load-nav">
+    <button class="nav-circle">
+      <svg width="11" height="17" viewBox="0 0 10 17" fill="none"><path d="M8.5 1.5L1.5 8.5L8.5 15.5" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="nav-circle">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="load-hero">
+    <div class="load-icon" style="background:linear-gradient(165deg,#FF6600,#FF9A00);display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 42C17 37 13 25 15 13C19 8 29 8 33 13C35 25 31 37 24 42Z" fill="white" opacity=".95"/><path d="M24 13C24 6 17 3 17 3C21 9 21 13 24 13Z" fill="white" opacity=".75"/><path d="M24 13C24 5 31 2 31 2C27 9 27 13 24 13Z" fill="white" opacity=".75"/><path d="M24 13C21 5 24 0 24 0C24 5 24 13 24 13Z" fill="white" opacity=".9"/></svg>
+    </div>
+    <div class="load-info">
+      <div class="load-name">연습 앱</div>
+      <div class="load-sub">다운로드 화면 연습용 앱</div>
+      <div class="load-indicator"><button class="d-get" id="practice-get-btn" type="button" onclick="beginPracticeDownload()">받기</button><canvas id="cv-p" style="display:none"></canvas></div>
+    </div>
+  </div>
+  <div class="load-stats">
+    <div class="load-stat"><div class="load-stat-top">평가</div><div class="load-stat-val">4.6</div></div>
+    <div class="load-stat"><div class="load-stat-top">연령</div><div class="load-stat-val">4+</div></div>
+    <div class="load-stat"><div class="load-stat-top">차트</div><div class="load-stat-val">#12</div></div>
+  </div>
+  <div class="load-news">
+    <div class="load-sec-title">새로운 소식 ›</div>
+    <div class="load-news-meta"><span>버전 1.0.0</span><span>오늘</span></div>
+    <div class="load-news-text">● 연습용 앱입니다. 실제 앱이 아닙니다.</div>
+  </div>
+  <div class="load-preview">
+    <div class="load-sec-title">미리 보기</div>
+    <div class="prev-row">
+      <div class="prev-card" style="background:linear-gradient(160deg,#b7e5ff,#eef9ff);color:#f97316">연습용<br>앱 화면</div>
+      <div class="prev-card" style="background:linear-gradient(160deg,#fff,#f5f5f7);color:#333">설치 과정<br>확인용</div>
+    </div>
+  </div>
+</div>
+
+<!-- ④ PRACTICE SURVEY -->
+
+<div id="s-psurvey" class="scr survey-wrap"></div>
+
+<!-- ⑤ SEARCH -->
+
+<div id="s-search" class="scr">
+  <div class="search-top" id="search-top"></div>
+  <div class="search-body" id="search-body"></div>
+  <div class="tabbar" id="tabbar-search">
+    <div class="tab" onclick="setTab(0)">
+      <div class="tab-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M3 6.5A3.5 3.5 0 0 1 6.5 3h11A3.5 3.5 0 0 1 21 6.5v11a3.5 3.5 0 0 1-3.5 3.5h-11A3.5 3.5 0 0 1 3 17.5v-11Z" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab-label">투데이</span>
+    </div>
+    <div class="tab" onclick="setTab(1)">
+      <div class="tab-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="8" width="20" height="13" rx="3.5" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M7 8V6.5a5 5 0 0 1 10 0V8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="9" cy="14.5" r="1.5" fill="currentColor"/>
+          <circle cx="15" cy="14.5" r="1.5" fill="currentColor"/>
+          <path d="M9 14.5h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+        </svg>
+      </div>
+      <span class="tab-label">게임</span>
+    </div>
+    <div class="tab" onclick="setTab(2)">
+      <div class="tab-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7.5" height="7.5" rx="2.5" stroke="currentColor" stroke-width="1.7"/>
+          <rect x="13.5" y="3" width="7.5" height="7.5" rx="2.5" stroke="currentColor" stroke-width="1.7"/>
+          <rect x="3" y="13.5" width="7.5" height="7.5" rx="2.5" stroke="currentColor" stroke-width="1.7"/>
+          <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.5" stroke="currentColor" stroke-width="1.7"/>
+        </svg>
+      </div>
+      <span class="tab-label">앱</span>
+    </div>
+    <div class="tab on" onclick="setTab(3)">
+      <div class="tab-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="tab-label">검색</span>
+    </div>
+  </div>
+</div>
+
+<!-- ⑥ DETAIL -->
+
+<div id="s-detail" class="scr">
+  <div class="detail-nav">
+    <button class="detail-back" onclick="go('s-search')">
+      <svg width="10" height="17" viewBox="0 0 10 17" fill="none" style="margin-right:2px"><path d="M8.5 1.5L1.5 8.5L8.5 15.5" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      검색
+    </button>
+    <button style="width:34px;height:34px;border-radius:50%;background:#F2F2F7;border:0;font-size:0;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="detail-scroll">
+    <div class="d-hero">
+      <div class="d-hero-row">
+        <div class="d-icon" id="d-icon"></div>
+        <div style="flex:1;min-width:0;padding-top:4px">
+          <div class="d-name" id="d-name"></div>
+          <div class="d-dev" id="d-dev"></div>
+          <button class="d-get" id="d-get-btn" onclick="startDownload()">받기</button>
+        </div>
+      </div>
+      <div class="d-stats">
+        <div class="d-stat"><div class="d-stat-top" id="d-rating-count">평점</div><div class="d-stat-val" id="d-rating">4.8</div><div class="d-stat-sub" id="d-stars"></div></div>
+        <div class="d-stat"><div class="d-stat-top">연령</div><div class="d-stat-val" id="d-age">4+</div><div class="d-stat-sub">세</div></div>
+        <div class="d-stat"><div class="d-stat-top" id="d-rank-cat">차트</div><div class="d-stat-val" id="d-rank">#5</div><div class="d-stat-sub">차트</div></div>
+        <div class="d-stat"><div class="d-stat-top">카테고리</div><div class="d-stat-val" id="d-cat" style="font-size:12px;letter-spacing:-.01em;word-break:keep-all;line-height:1.3;padding-top:2px">소셜</div><div class="d-stat-sub" id="d-dev-short"></div></div>
+      </div>
+    </div>
+    <div class="d-sec" style="margin-top:16px">
+      <div class="d-sec-title">새로운 소식</div>
+      <div class="d-news" id="d-news"></div>
+      <div class="d-ver" id="d-ver"></div>
+    </div>
+    <div class="d-sec" style="padding-bottom:16px">
+      <div class="d-sec-title" style="margin-bottom:0">미리 보기</div>
+      <div class="d-prev-row" id="d-prev-row"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑦ LOADING -->
+
+<div id="s-loading" class="scr load-page">
+  <div class="load-nav">
+    <button class="nav-circle" onclick="go('s-detail')" style="font-size:0">
+      <svg width="11" height="17" viewBox="0 0 10 17" fill="none"><path d="M8.5 1.5L1.5 8.5L8.5 15.5" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="nav-circle" style="font-size:0">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="load-hero">
+    <div class="load-icon" id="l-icon"></div>
+    <div class="load-info">
+      <div class="load-name" id="l-name"></div>
+      <div class="load-sub" id="l-sub"></div>
+      <div class="load-indicator"><canvas id="cv-main"></canvas></div>
+    </div>
+  </div>
+  <div class="load-stats">
+    <div class="load-stat"><div class="load-stat-top" id="l-rating-lbl">3.9만개의 평가</div><div class="load-stat-val" id="l-rating">3.9</div></div>
+    <div class="load-stat"><div class="load-stat-top">연령</div><div class="load-stat-val" id="l-age">12+</div></div>
+    <div class="load-stat"><div class="load-stat-top">차트</div><div class="load-stat-val" id="l-rank">#6</div></div>
+  </div>
+  <div class="load-news">
+    <div class="load-sec-title">새로운 소식 ›</div>
+    <div class="load-news-meta"><span id="l-ver">버전 1.0</span><span id="l-date">4일 전</span></div>
+    <div class="load-news-text" id="l-news">● 버그 수정 및 성능 향상</div>
+  </div>
+  <div class="load-preview">
+    <div class="load-sec-title">미리 보기</div>
+    <div class="prev-row" id="l-prev-row"></div>
+  </div>
+</div>
+
+<!-- ⑧ SURVEY -->
+
+<div id="s-survey" class="scr survey-wrap"></div>
+
+<!-- ⑨ FINAL -->
+
+<div id="s-final" class="scr">
+  <div class="final-inner">
+    <div class="final-head">
+      <div class="s-kicker">최종 비교 평가</div>
+      <div class="s-title" style="font-size:20px">8개 로딩 화면 비교</div>
+      <div class="s-sub">지금까지 경험한 8개의 로딩 화면을 비교하여 응답해주세요. ▶ 다시 보기로 재확인할 수 있습니다.</div>
+    </div>
+    <div class="sec-lbl">가장 짧게 느껴진 로딩</div>
+    <div id="grid-short"></div>
+    <div class="sec-lbl">가장 선호하는 로딩</div>
+    <div id="grid-pref"></div>
+    <div class="sec-lbl">선택 이유 <span style="color:#8e8e93;font-weight:400">(선택)</span></div>
+    <div class="q-card"><textarea class="final-ta" id="reason-txt" placeholder="예: 진행 속도가 명확해서 기다림이 덜 느껴졌습니다."></textarea></div>
+    <button class="survey-submit" onclick="submitFinal()">응답 제출하기</button>
+  </div>
+</div>
+
+<!-- ⑩ DONE -->
+
+<div id="s-done" class="scr">
+  <div class="done-glass">
+    <div class="done-icon">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M8 18l7 7 13-14" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="done-title">실험이 완료되었습니다</div>
+    <div class="done-sub">참여해 주셔서 감사합니다.<br>아래 버튼으로 응답을 제출해주세요.</div>
+    <div id="done-pid" style="font-size:12px;color:rgba(255,255,255,.3);margin-top:6px;font-family:monospace;letter-spacing:.04em"></div>
+    <button class="done-btn primary" id="submit-btn" onclick="submitToSheet()">응답 데이터 제출</button>
+    <div id="submit-status" style="font-size:13px;min-height:18px;color:rgba(255,255,255,.5);margin-top:8px;line-height:1.55;text-align:center"></div>
+    <button class="done-btn" onclick="downloadCSV()" style="margin-top:4px;font-size:13px">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" style="margin-right:5px"><path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      CSV 저장 (백업)
+    </button>
+  </div>
+</div>
+
+<!-- REPLAY MODAL -->
+
+<div id="replay-modal">
+  <div class="replay-kicker" id="rk"></div>
+  <div class="replay-title" id="rt"></div>
+  <canvas id="cv-replay"></canvas>
+  <button class="replay-close" id="rc" onclick="closeReplay()">닫기</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+const TOTAL_DOWNLOAD_MS=15000; // 로딩 UI가 실제로 보이기 시작한 순간부터 열기 버튼 표시까지 15초
+const LOADING_APPEAR_DELAY_MS=600; // 받기 버튼 제거 후 로딩 UI 등장까지 0.6초
+const FIXED_LOADING_MS=TOTAL_DOWNLOAD_MS; // 연습 포함 실제 로딩 애니메이션 구간 15초
+const CONDITION_LOADING_MS=TOTAL_DOWNLOAD_MS; // 실제 8개 조건도 동일하게 15초
+const DOWNLOAD_UI_DELAY_MS=0; // 예비값
+const SEGMENT_EXTRA_MS=0; // 0.5초 추가 보정 제거
+const ICONS=[
+  /* 0 당근 — 실제 아이콘처럼 잎+당근 몸통 */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:72%;height:72%">
+    <path d="M17.5 17C16 23 17 31 20 36.5C21.5 39.5 24 42 24 42C24 42 26.5 39.5 28 36.5C31 31 32 23 30.5 17C28.5 11 19.5 11 17.5 17Z" fill="white" opacity=".97"/>
+    <path d="M24 17C22 9.5 15 5.5 15 5.5C18 11 22 16.5 24 17Z" fill="white" opacity=".9"/>
+    <path d="M24 17C26 9.5 33 5.5 33 5.5C30 11 26 16.5 24 17Z" fill="white" opacity=".9"/>
+    <path d="M24 17C20.5 7 24 2 24 2C24 8 24 17 24 17Z" fill="white" opacity=".97"/>
+  </svg>`,
+  /* 1 고양이와 스프 — 귀·눈·수염·입 있는 고양이 얼굴 */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:82%;height:82%">
+    <ellipse cx="24" cy="27" rx="15" ry="13.5" fill="white" opacity=".95"/>
+    <path d="M10 20L13.5 8L19 19" fill="white" opacity=".9"/>
+    <path d="M38 20L34.5 8L29 19" fill="white" opacity=".9"/>
+    <path d="M11.5 19L14 10L18 18.5" fill="#ff9d3d" opacity=".45"/>
+    <path d="M36.5 19L34 10L30 18.5" fill="#ff9d3d" opacity=".45"/>
+    <ellipse cx="18.5" cy="26" rx="4" ry="4.5" fill="#ff9d3d"/>
+    <ellipse cx="29.5" cy="26" rx="4" ry="4.5" fill="#ff9d3d"/>
+    <ellipse cx="18.5" cy="26.5" rx="2" ry="2.5" fill="rgba(10,5,0,.6)"/>
+    <ellipse cx="29.5" cy="26.5" rx="2" ry="2.5" fill="rgba(10,5,0,.6)"/>
+    <circle cx="19.5" cy="25" r="1" fill="white"/>
+    <circle cx="30.5" cy="25" r="1" fill="white"/>
+    <ellipse cx="24" cy="31" rx="2" ry="1.5" fill="#ff9d3d" opacity=".9"/>
+    <path d="M21 33.5Q24 37 27 33.5" stroke="#ff9d3d" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <path d="M8 27.5L17.5 29" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity=".6"/>
+    <path d="M8 30L17.5 30.5" stroke="white" stroke-width="1.2" stroke-linecap="round" opacity=".45"/>
+    <path d="M40 27.5L30.5 29" stroke="white" stroke-width="1.3" stroke-linecap="round" opacity=".6"/>
+    <path d="M40 30L30.5 30.5" stroke="white" stroke-width="1.2" stroke-linecap="round" opacity=".45"/>
+  </svg>`,
+  /* 2 위키백과 — W + 글로브 링 */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:82%;height:82%">
+    <circle cx="24" cy="24" r="16" stroke="white" stroke-width="1.5" opacity=".18" fill="none"/>
+    <ellipse cx="24" cy="24" rx="9" ry="16" stroke="white" stroke-width="1" opacity=".12" fill="none"/>
+    <line x1="8" y1="18" x2="40" y2="18" stroke="white" stroke-width="1" opacity=".12"/>
+    <line x1="8" y1="30" x2="40" y2="30" stroke="white" stroke-width="1" opacity=".12"/>
+    <text x="24" y="33" text-anchor="middle" font-family="Georgia,Times New Roman,serif" font-size="28" font-weight="900" fill="white" opacity=".97">W</text>
+  </svg>`,
+  /* 3 Gemini — 4-pointed star sparkle */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:78%;height:78%">
+    <path d="M24 4C24 4 20.5 19.5 4 24C20.5 28.5 24 44 24 44C24 44 27.5 28.5 44 24C27.5 19.5 24 4 24 4Z" fill="white" opacity=".97"/>
+    <path d="M24 13C24 13 22 20.5 13 24C22 27.5 24 35 24 35C24 35 26 27.5 35 24C26 20.5 24 13 24 13Z" fill="white" opacity=".4"/>
+  </svg>`,
+  /* 4 Instagram — 카메라 프레임 + 렌즈 + 플래시 */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:78%;height:78%">
+    <rect x="7" y="7" width="34" height="34" rx="10" stroke="white" stroke-width="3.2" fill="none"/>
+    <circle cx="24" cy="24" r="9" stroke="white" stroke-width="2.8" fill="none"/>
+    <circle cx="36" cy="12" r="2.8" fill="white"/>
+  </svg>`,
+  /* 5 SNOW — 눈결정 */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:78%;height:78%">
+    <line x1="24" y1="5" x2="24" y2="43" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="5" y1="24" x2="43" y2="24" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="11" y1="11" x2="37" y2="37" stroke="white" stroke-width="2.4" stroke-linecap="round" opacity=".72"/>
+    <line x1="37" y1="11" x2="11" y2="37" stroke="white" stroke-width="2.4" stroke-linecap="round" opacity=".72"/>
+    <circle cx="24" cy="24" r="4.5" fill="white"/>
+    <circle cx="24" cy="7" r="2.8" fill="white"/>
+    <circle cx="24" cy="41" r="2.8" fill="white"/>
+    <circle cx="7" cy="24" r="2.8" fill="white"/>
+    <circle cx="41" cy="24" r="2.8" fill="white"/>
+  </svg>`,
+  /* 6 Duolingo — 부엉이 얼굴 */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:84%;height:84%">
+    <ellipse cx="24" cy="28" rx="14.5" ry="12.5" fill="white" opacity=".93"/>
+    <ellipse cx="16" cy="17.5" rx="6.5" ry="7.5" fill="white"/>
+    <ellipse cx="32" cy="17.5" rx="6.5" ry="7.5" fill="white"/>
+    <circle cx="16" cy="18.5" r="5" fill="#58c70a"/>
+    <circle cx="32" cy="18.5" r="5" fill="#58c70a"/>
+    <circle cx="16" cy="19" r="2.4" fill="rgba(0,0,0,.65)"/>
+    <circle cx="32" cy="19" r="2.4" fill="rgba(0,0,0,.65)"/>
+    <circle cx="17.2" cy="17.8" r="1" fill="white"/>
+    <circle cx="33.2" cy="17.8" r="1" fill="white"/>
+    <path d="M21 29.5L24 33.5L27 29.5Q24 27.5 21 29.5Z" fill="#ff9a3d" opacity=".9"/>
+    <path d="M19 36Q24 40 29 36" stroke="#58c70a" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  </svg>`,
+  /* 7 FC모바일 — 축구공 */
+  `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:78%;height:78%">
+    <circle cx="24" cy="24" r="17" stroke="white" stroke-width="2" opacity=".8" fill="none"/>
+    <polygon points="24,13 28,19.5 35.5,19.5 29.5,24 32,31 24,27 16,31 18.5,24 12.5,19.5 20,19.5" fill="white" opacity=".97"/>
+    <line x1="24" y1="7" x2="24" y2="13" stroke="white" stroke-width="1.6" opacity=".4" stroke-linecap="round"/>
+    <line x1="38" y1="17.5" x2="35.5" y2="19.5" stroke="white" stroke-width="1.6" opacity=".4" stroke-linecap="round"/>
+    <line x1="34" y1="38" x2="32" y2="31" stroke="white" stroke-width="1.6" opacity=".4" stroke-linecap="round"/>
+    <line x1="14" y1="38" x2="16" y2="31" stroke="white" stroke-width="1.6" opacity=".4" stroke-linecap="round"/>
+    <line x1="10" y1="17.5" x2="12.5" y2="19.5" stroke="white" stroke-width="1.6" opacity=".4" stroke-linecap="round"/>
+  </svg>`
+];
+const APPS = [
+  {id:0, keyword:'당근', name:'당근', dev:'Danggeun Market Inc.', desc:'내 근처 중고거래 · 알바 · 부동산',
+   cat:'소셜 네트워킹', rating:'3.9', age:'12+', rank:'#5', ratingCount:'18.4만', ver:'버전 26.17.0', date:'4일 전',
+   news:'• 당근알바 신규 필터 추가\n• 채팅 안정성 개선 및 버그 수정',
+   colors:['#FF6600','#FF8C00'],
+   prevColors:[['#b7e5ff','#eef9ff','#1c1c1e'],['#fff8ee','#ffedcc','#333']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;padding:10px;height:100%;background:#fff;border-radius:inherit;overflow:hidden'>
+  <div style='font-size:10px;font-weight:800;color:#ff8a00;margin-bottom:8px'>📍 마포구 근처</div>
+  <div style='background:#fff8f0;border-radius:8px;padding:7px 8px;margin-bottom:6px;display:flex;gap:7px;align-items:center'>
+    <div style='width:38px;height:38px;background:linear-gradient(135deg,#ffe0b2,#ffcc80);border-radius:7px;flex-shrink:0'></div>
+    <div><div style='font-size:10px;font-weight:700;color:#1c1c1e;line-height:1.3'>맥북 에어 M2<br>256GB 실버</div><div style='font-size:9px;color:#ff8a00;font-weight:700;margin-top:2px'>1,200,000원</div></div>
+  </div>
+  <div style='background:#fff8f0;border-radius:8px;padding:7px 8px;margin-bottom:6px;display:flex;gap:7px;align-items:center'>
+    <div style='width:38px;height:38px;background:linear-gradient(135deg,#b3e5fc,#81d4fa);border-radius:7px;flex-shrink:0'></div>
+    <div><div style='font-size:10px;font-weight:700;color:#1c1c1e;line-height:1.3'>닌텐도 스위치<br>OLED 화이트</div><div style='font-size:9px;color:#ff8a00;font-weight:700;margin-top:2px'>280,000원</div></div>
+  </div>
+  <div style='background:#fff8f0;border-radius:8px;padding:7px 8px;display:flex;gap:7px;align-items:center'>
+    <div style='width:38px;height:38px;background:linear-gradient(135deg,#dcedc8,#aed581);border-radius:7px;flex-shrink:0'></div>
+    <div><div style='font-size:10px;font-weight:700;color:#1c1c1e;line-height:1.3'>아이패드 Pro<br>11인치 M4</div><div style='font-size:9px;color:#ff8a00;font-weight:700;margin-top:2px'>950,000원</div></div>
+  </div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:#1c1c1e;border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:10px;font-weight:800;color:#ff8a00;margin-bottom:6px'>💼 당근알바</div>
+  <div style='background:#2c2c2e;border-radius:8px;padding:8px;margin-bottom:5px'>
+    <div style='font-size:10px;font-weight:700;color:#fff'>카페 홀 서빙 알바</div>
+    <div style='font-size:9px;color:#8e8e93;margin-top:2px'>시급 11,000원 · 홍대입구역 도보 3분</div>
+    <div style='background:#ff8a00;border-radius:5px;padding:2px 7px;display:inline-block;margin-top:4px;font-size:8px;font-weight:700;color:#fff'>지금 바로</div>
+  </div>
+  <div style='background:#2c2c2e;border-radius:8px;padding:8px;margin-bottom:5px'>
+    <div style='font-size:10px;font-weight:700;color:#fff'>편의점 야간 알바</div>
+    <div style='font-size:9px;color:#8e8e93;margin-top:2px'>시급 12,500원 · GS25 마포점</div>
+    <div style='background:#3a3a3c;border-radius:5px;padding:2px 7px;display:inline-block;margin-top:4px;font-size:8px;font-weight:700;color:#8e8e93'>마감 임박</div>
+  </div>
+</div>`],
+   ac:['당근마켓','당근','당근알바','당근비즈니스','딸기도 있고, 당근도 있어요!(스토리)','당근부동산','당근영어','당근 전국 검색','당근마켓 전국','당근농장'],
+   decoy:{name:'번개장터',desc:'브랜드 중고거래 앱',meta:'★★★★☆ 15만 · Pic&Go · #14 쇼핑',bg:['#111','#333'],installed:false,
+     prevColors:[['#1a1a1a','#333','#fff'],['#222','#444','#fff'],['#1a1a1a','#2a2a2a','#fff']]}
+  },
+  {id:1, keyword:'고양이와 스프', name:'고양이와 스프: 마법의 레시피', dev:'Hidea', desc:'환상적인 머징의 세계로 떠나라냥!',
+   cat:'게임', rating:'4.8', age:'4+', rank:'#3', ratingCount:'42.8만', ver:'버전 1.8.0', date:'2일 전',
+   news:'신규 이벤트와 아이템이 추가되었어요.',
+   colors:['#ffd27a','#ff9d3d'],
+   prevColors:[['#536b96','#d6c0ef','#fff'],['#ffd27a','#ff9d3d','#fff']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#536b96,#d6c0ef);border-radius:inherit;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px'>
+  <div style='font-size:28px'>🐱🍲</div>
+  <div style='font-size:11px;font-weight:800;color:#fff;text-align:center'>마법의 스프를<br>완성하라냥!</div>
+  <div style='display:flex;gap:5px;margin-top:4px'>
+    <div style='background:rgba(255,255,255,.25);border-radius:6px;padding:4px 8px;font-size:9px;font-weight:700;color:#fff'>⭐ 4.8</div>
+    <div style='background:rgba(255,255,255,.25);border-radius:6px;padding:4px 8px;font-size:9px;font-weight:700;color:#fff'>🏆 #3 게임</div>
+  </div>
+  <div style='background:rgba(255,255,255,.15);border-radius:10px;width:100%;height:36px;display:flex;align-items:center;justify-content:center;margin-top:4px'><span style='font-size:9px;font-weight:700;color:#fff'>지금 시작하기 →</span></div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#ffd27a,#ff9d3d);border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:800;color:rgba(255,255,255,.8);margin-bottom:6px'>오늘의 이벤트</div>
+  <div style='background:rgba(255,255,255,.2);border-radius:8px;padding:7px;margin-bottom:5px'>
+    <div style='font-size:22px;text-align:center;margin-bottom:3px'>🐾</div>
+    <div style='font-size:10px;font-weight:700;color:#fff;text-align:center'>특별 레시피 해금!</div>
+    <div style='font-size:8.5px;color:rgba(255,255,255,.8);text-align:center;margin-top:2px'>오늘만 특별 재료 3배</div>
+  </div>
+  <div style='display:flex;gap:4px'>
+    <div style='flex:1;background:rgba(255,255,255,.2);border-radius:7px;padding:6px;text-align:center'>
+      <div style='font-size:14px'>🧪</div><div style='font-size:8px;font-weight:700;color:#fff;margin-top:2px'>포션</div>
+    </div>
+    <div style='flex:1;background:rgba(255,255,255,.2);border-radius:7px;padding:6px;text-align:center'>
+      <div style='font-size:14px'>🌿</div><div style='font-size:8px;font-weight:700;color:#fff;margin-top:2px'>허브</div>
+    </div>
+    <div style='flex:1;background:rgba(255,255,255,.2);border-radius:7px;padding:6px;text-align:center'>
+      <div style='font-size:14px'>🐟</div><div style='font-size:8px;font-weight:700;color:#fff;margin-top:2px'>생선</div>
+    </div>
+  </div>
+</div>`],
+   ac:['고양이와 스프: 마법의 레시피','고양이와 스프','고양이 키우기','냥코 대전쟁','캣 시뮬레이터','고양이 키우기 게임','Cat Soup','마법의 스프','냥이 키우기','스프 만들기'],
+   decoy:{name:'냥코 대전쟁',desc:'귀여운 고양이 방어탑 게임',meta:'★★★★★ 22만 · PONOS Corp. · #5 게임',bg:['#f59e0b','#dc2626'],installed:true,
+     prevColors:[['#f59e0b','#fbbf24','#111'],['#dc2626','#ef4444','#111']]}
+  },
+  {id:2, keyword:'네이버웹툰', name:'네이버웹툰 - Naver Webtoon', dev:'NAVER WEBTOON Ltd.', desc:'매일매일 새로운 웹툰과 만화',
+   cat:'엔터테인먼트', rating:'4.7', age:'12+', rank:'#9', ratingCount:'3.2만', ver:'버전 3.0.1', date:'5일 전',
+   news:'추천 화면과 작품 탐색 경험을 개선했어요.',
+   colors:['#2c2c2e','#1a1a1c'],
+   prevColors:[['#00dc64','#eafff1','#111'],['#101820','#263238','#fff']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;height:100%;background:#101820;border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:800;color:#00dc64;margin-bottom:7px'>🔥 인기 급상승</div>
+  <div style='background:#1a2332;border-radius:7px;padding:6px;margin-bottom:5px;display:flex;gap:6px;align-items:center'>
+    <div style='width:32px;height:44px;background:linear-gradient(160deg,#00dc64,#007a3d);border-radius:5px;flex-shrink:0'></div>
+    <div><div style='font-size:10px;font-weight:700;color:#fff'>나 혼자만 레벨업</div><div style='font-size:8.5px;color:#8e8e93;margin-top:1px'>판타지 · 액션</div><div style='font-size:8px;color:#00dc64;margin-top:2px'>★★★★★ 9.9</div></div>
+  </div>
+  <div style='background:#1a2332;border-radius:7px;padding:6px;margin-bottom:5px;display:flex;gap:6px;align-items:center'>
+    <div style='width:32px;height:44px;background:linear-gradient(160deg,#4fc3f7,#0288d1);border-radius:5px;flex-shrink:0'></div>
+    <div><div style='font-size:10px;font-weight:700;color:#fff'>외모지상주의</div><div style='font-size:8.5px;color:#8e8e93;margin-top:1px'>드라마 · 학원</div><div style='font-size:8px;color:#00dc64;margin-top:2px'>★★★★★ 9.8</div></div>
+  </div>
+  <div style='background:#1a2332;border-radius:7px;padding:6px;display:flex;gap:6px;align-items:center'>
+    <div style='width:32px;height:44px;background:linear-gradient(160deg,#f48fb1,#e91e63);border-radius:5px;flex-shrink:0'></div>
+    <div><div style='font-size:10px;font-weight:700;color:#fff'>여신강림</div><div style='font-size:8.5px;color:#8e8e93;margin-top:1px'>로맨스 · 일상</div><div style='font-size:8px;color:#00dc64;margin-top:2px'>★★★★☆ 9.5</div></div>
+  </div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#00dc64,#004d26);border-radius:inherit;overflow:hidden;display:flex;flex-direction:column;padding:12px;gap:6px'>
+  <div style='font-size:9px;font-weight:800;color:rgba(255,255,255,.8)'>오늘 업데이트</div>
+  <div style='display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:1'>
+    <div style='background:rgba(0,0,0,.25);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px'>
+      <div style='font-size:18px'>🗡️</div><div style='font-size:8.5px;font-weight:700;color:#fff;text-align:center;margin-top:3px'>화요웹툰<br>12편</div>
+    </div>
+    <div style='background:rgba(0,0,0,.25);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px'>
+      <div style='font-size:18px'>💕</div><div style='font-size:8.5px;font-weight:700;color:#fff;text-align:center;margin-top:3px'>수요웹툰<br>8편</div>
+    </div>
+    <div style='background:rgba(0,0,0,.25);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px'>
+      <div style='font-size:18px'>🤣</div><div style='font-size:8.5px;font-weight:700;color:#fff;text-align:center;margin-top:3px'>코미디<br>5편</div>
+    </div>
+    <div style='background:rgba(0,0,0,.25);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px'>
+      <div style='font-size:18px'>👻</div><div style='font-size:8.5px;font-weight:700;color:#fff;text-align:center;margin-top:3px'>공포/스릴러<br>3편</div>
+    </div>
+  </div>
+</div>`],
+   ac:['네이버웹툰','웹툰','Naver Webtoon','네이버 웹툰','화요웹툰','수요웹툰','웹툰 추천','네이버시리즈','만화 앱','쿠키오븐'],
+   decoy:{name:'카카오웹툰',desc:'다양한 인기 웹툰과 웹소설',meta:'★★★★☆ 8.7만 · Kakao Entertainment · #10 엔터테인먼트',bg:['#ffe812','#3a1d1d'],installed:false,
+     prevColors:[['#ffe812','#fff4a3','#111'],['#3a1d1d','#5b2d2d','#fff']]}
+  },
+  {id:3, keyword:'Gemini', name:'Google Gemini', dev:'Google LLC', desc:'Google에서 제공하는 AI 어시스턴트',
+   cat:'생산성', rating:'4.7', age:'4+', rank:'#4', ratingCount:'8.5만', ver:'버전 2.0.2', date:'1일 전',
+   news:'응답 속도와 다국어 기능을 개선했어요.',
+   colors:['#1a6bea','#7c3aed'],
+   prevColors:[['#d4dcff','#f6f6f6','#111'],['#a7c7ff','#e8f0fe','#333']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#d4dcff,#f6f6f6);border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:700;color:#4285f4;margin-bottom:7px'>✦ Gemini AI</div>
+  <div style='background:#fff;border-radius:8px;padding:7px;margin-bottom:5px;box-shadow:0 1px 4px rgba(0,0,0,.08)'>
+    <div style='font-size:9px;color:#666;margin-bottom:4px'>나: 마케팅 문구 써줘</div>
+    <div style='font-size:9.5px;font-weight:600;color:#1c1c1e;line-height:1.4'>당신의 일상을 더<br>스마트하게 — AI와<br>함께하는 새로운 경험</div>
+  </div>
+  <div style='display:flex;gap:4px;flex-wrap:wrap'>
+    <div style='background:#e8eaff;border-radius:12px;padding:3px 8px;font-size:8.5px;font-weight:600;color:#4285f4'>요약하기</div>
+    <div style='background:#e8eaff;border-radius:12px;padding:3px 8px;font-size:8.5px;font-weight:600;color:#4285f4'>번역하기</div>
+    <div style='background:#e8eaff;border-radius:12px;padding:3px 8px;font-size:8.5px;font-weight:600;color:#4285f4'>코드 작성</div>
+  </div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#a7c7ff,#e8f0fe);border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:700;color:#1a73e8;margin-bottom:6px'>Gemini Advanced</div>
+  <div style='display:flex;flex-direction:column;gap:5px'>
+    <div style='background:rgba(255,255,255,.8);border-radius:7px;padding:6px 8px;font-size:9px;font-weight:600;color:#1c1c1e'>📸 이미지 분석 & 설명</div>
+    <div style='background:rgba(255,255,255,.8);border-radius:7px;padding:6px 8px;font-size:9px;font-weight:600;color:#1c1c1e'>📄 긴 문서 요약하기</div>
+    <div style='background:rgba(255,255,255,.8);border-radius:7px;padding:6px 8px;font-size:9px;font-weight:600;color:#1c1c1e'>💻 코드 디버깅 도우미</div>
+    <div style='background:rgba(255,255,255,.8);border-radius:7px;padding:6px 8px;font-size:9px;font-weight:600;color:#1c1c1e'>🌐 실시간 정보 검색</div>
+  </div>
+</div>`],
+   ac:['Gemini','Google Gemini','Google AI 어시스턴트','Gemini Advanced','Google Bard','AI 어시스턴트','구글 AI','Gemini Pro','AI 챗봇','Google One AI'],
+   decoy:{name:'ChatGPT',desc:'AI 어시스턴트',meta:'★★★★☆ 11만 · OpenAI · #2 생산성',bg:['#10a37f','#1a1a2e'],installed:true,
+     prevColors:[['#10a37f','#1a7a60','#fff'],['#1a1a2e','#2a2a3e','#fff']]}
+  },
+  {id:4, keyword:'Instagram', name:'Instagram', dev:'Instagram, Inc.', desc:'사진 및 비디오',
+   cat:'소셜 네트워킹', rating:'4.5', age:'12+', rank:'#2', ratingCount:'127만', ver:'버전 360.0', date:'3일 전',
+   news:'스토리와 릴스 경험을 개선했어요.',
+   colors:['#feda75','#d62976'],
+   prevColors:[['#feda75','#d62976','#fff'],['#4f5bd5','#962fbf','#fff']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;height:100%;background:#fff;border-radius:inherit;overflow:hidden'>
+  <div style='background:linear-gradient(90deg,#feda75,#fa7e1e,#d62976,#962fbf);height:3px'></div>
+  <div style='padding:7px 8px'>
+    <div style='display:flex;align-items:center;gap:5px;margin-bottom:7px'>
+      <div style='width:22px;height:22px;background:linear-gradient(135deg,#feda75,#d62976);border-radius:50%'></div>
+      <div style='font-size:9.5px;font-weight:700;color:#1c1c1e'>you_official</div>
+    </div>
+    <div style='background:linear-gradient(160deg,#feda75,#d62976);border-radius:6px;height:70px;margin-bottom:5px;display:flex;align-items:center;justify-content:center;font-size:20px'>📸</div>
+    <div style='display:flex;gap:10px;margin-bottom:4px'>
+      <span style='font-size:14px'>❤️</span><span style='font-size:14px'>💬</span><span style='font-size:14px'>✈️</span>
+    </div>
+    <div style='font-size:9px;font-weight:700;color:#1c1c1e'>좋아요 2,847개</div>
+  </div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:#000;border-radius:inherit;overflow:hidden;display:flex;flex-direction:column'>
+  <div style='background:linear-gradient(160deg,#4f5bd5,#962fbf);flex:1;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative'>
+    🎬
+    <div style='position:absolute;bottom:8px;left:0;right:0;padding:0 8px'>
+      <div style='font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)'>Reels · 1.2M 조회</div>
+    </div>
+  </div>
+  <div style='padding:8px;display:flex;align-items:center;gap:6px'>
+    <div style='width:22px;height:22px;background:linear-gradient(135deg,#feda75,#d62976);border-radius:50%'></div>
+    <div style='font-size:9px;font-weight:700;color:#fff;flex:1'>creator_kr</div>
+    <div style='background:rgba(255,255,255,.15);border-radius:10px;padding:3px 8px;font-size:8.5px;font-weight:700;color:#fff'>팔로우</div>
+  </div>
+</div>`],
+   ac:['Instagram','인스타그램','Instagram Lite','Instagram 릴스','Meta','인스타 DM','인스타그램 다운로드','IG','Instagram 스토리','Instagram 쇼핑'],
+   decoy:{name:'TikTok',desc:'짧은 동영상 플랫폼',meta:'★★★★☆ 33만 · TikTok Pte. Ltd. · #1 소셜',bg:['#111','#ee1d52'],installed:false,
+     prevColors:[['#111','#222','#fff'],['#ee1d52','#69c9d0','#fff']]}
+  },
+  {id:5, keyword:'SNOW', name:'SNOW 스노우 - AI 프로필 & 고화질 카메라', dev:'Snow Corp.', desc:'AI스타일, AI증명사진, AI헤어샵',
+   cat:'사진 및 비디오', rating:'4.6', age:'4+', rank:'#11', ratingCount:'19.4만', ver:'버전 13.2.1', date:'1주 전',
+   news:'AI 카메라 필터와 증명사진 기능을 개선했어요.',
+   colors:['#9be7ff','#5bd8f2'],
+   prevColors:[['#9be7ff','#fff','#111'],['#d6f7ff','#eefffe','#333']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#e8f8ff,#c7f0fd);border-radius:inherit;overflow:hidden;padding:10px;display:flex;flex-direction:column;gap:6px'>
+  <div style='font-size:9px;font-weight:800;color:#0096c7'>✨ AI 프로필</div>
+  <div style='background:#fff;border-radius:10px;padding:8px;box-shadow:0 2px 8px rgba(0,150,200,.12)'>
+    <div style='background:linear-gradient(160deg,#9be7ff,#5bd8f2);border-radius:8px;height:60px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:6px'>🤩</div>
+    <div style='font-size:9.5px;font-weight:700;color:#1c1c1e;text-align:center'>AI 증명사진 완성!</div>
+    <div style='font-size:8.5px;color:#8e8e93;text-align:center;margin-top:2px'>직접 사진관 가지 마세요</div>
+  </div>
+  <div style='display:flex;gap:4px'>
+    <div style='flex:1;background:#fff;border-radius:7px;padding:5px;text-align:center;font-size:8px;font-weight:700;color:#0096c7'>AI 스타일</div>
+    <div style='flex:1;background:#fff;border-radius:7px;padding:5px;text-align:center;font-size:8px;font-weight:700;color:#0096c7'>AI 헤어</div>
+    <div style='flex:1;background:#fff;border-radius:7px;padding:5px;text-align:center;font-size:8px;font-weight:700;color:#0096c7'>뷰티</div>
+  </div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#d6f7ff,#b2ecf8);border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:800;color:#0096c7;margin-bottom:6px'>📸 고화질 카메라</div>
+  <div style='background:rgba(255,255,255,.7);border-radius:10px;padding:8px;margin-bottom:5px'>
+    <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:4px'>
+      <span style='font-size:8.5px;font-weight:700;color:#1c1c1e'>AI 뷰티</span>
+      <span style='font-size:8.5px;color:#0096c7;font-weight:600'>ON</span>
+    </div>
+    <div style='height:4px;background:#e0f4fb;border-radius:2px'><div style='height:100%;width:70%;background:#0096c7;border-radius:2px'></div></div>
+  </div>
+  <div style='background:rgba(255,255,255,.7);border-radius:10px;padding:8px;margin-bottom:5px'>
+    <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:4px'>
+      <span style='font-size:8.5px;font-weight:700;color:#1c1c1e'>피부 보정</span>
+      <span style='font-size:8.5px;color:#0096c7;font-weight:600'>ON</span>
+    </div>
+    <div style='height:4px;background:#e0f4fb;border-radius:2px'><div style='height:100%;width:50%;background:#0096c7;border-radius:2px'></div></div>
+  </div>
+</div>`],
+   ac:['SNOW 스노우 - AI 프로필 & 고화질 카메라','SNOW','스노우 카메라','Snow AI 프로필','스노우 뷰티','AI 증명사진','뷰티 카메라','스노우 필터','B612','스노우 앱'],
+   decoy:{name:'B612',desc:'셀카 & 뷰티 카메라',meta:'★★★★☆ 7.3만 · Snow Corp. · #6 사진',bg:['#8b5cf6','#ec4899'],installed:true,
+     prevColors:[['#8b5cf6','#a78bfa','#fff'],['#ec4899','#f472b6','#fff']]}
+  },
+  {id:6, keyword:'Duolingo', name:'듀오링고(Duolingo): 언어 학습', dev:'Duolingo', desc:'영어, 스페인어, 프랑스어를 배워보세요.',
+   cat:'교육', rating:'4.8', age:'4+', rank:'#1', ratingCount:'58.9만', ver:'버전 7.11.0', date:'2일 전',
+   news:'학습 문제와 스트릭 기능을 개선했어요.',
+   colors:['#7ed321','#58c70a'],
+   prevColors:[['#7ed321','#d7ff8a','#1c1c1e'],['#fff','#f0fce4','#333']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#7ed321,#4caf50);border-radius:inherit;overflow:hidden;padding:10px;display:flex;flex-direction:column'>
+  <div style='font-size:9px;font-weight:800;color:rgba(255,255,255,.9);margin-bottom:5px'>🔥 7일 스트릭!</div>
+  <div style='background:rgba(255,255,255,.2);border-radius:10px;padding:8px;margin-bottom:6px'>
+    <div style='font-size:10px;font-weight:700;color:#fff;margin-bottom:4px'>오늘의 영어 학습</div>
+    <div style='background:rgba(255,255,255,.3);border-radius:6px;padding:5px;font-size:9px;font-weight:600;color:#fff;margin-bottom:3px'>🎯 선택: "I <u>have been</u> studying"</div>
+    <div style='font-size:8.5px;color:rgba(255,255,255,.8)'>현재완료진행형 연습</div>
+  </div>
+  <div style='display:flex;gap:4px;flex:1'>
+    <div style='flex:1;background:rgba(255,255,255,.15);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px'>
+      <div style='font-size:16px'>💎</div><div style='font-size:8px;font-weight:700;color:#fff;margin-top:2px'>450 XP</div>
+    </div>
+    <div style='flex:1;background:rgba(255,255,255,.15);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px'>
+      <div style='font-size:16px'>🏆</div><div style='font-size:8px;font-weight:700;color:#fff;margin-top:2px'>Gold</div>
+    </div>
+  </div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:#fff;border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:800;color:#58c70a;margin-bottom:6px'>학습 언어 선택</div>
+  <div style='display:flex;flex-direction:column;gap:4px'>
+    <div style='background:#f0fce4;border-radius:8px;padding:7px 9px;display:flex;align-items:center;gap:8px;border:1.5px solid #58c70a'>
+      <span style='font-size:16px'>🇺🇸</span><div><div style='font-size:10px;font-weight:700;color:#1c1c1e'>English</div><div style='font-size:8.5px;color:#8e8e93'>중급 · 1,240 XP</div></div>
+    </div>
+    <div style='background:#f8f8f8;border-radius:8px;padding:7px 9px;display:flex;align-items:center;gap:8px'>
+      <span style='font-size:16px'>🇯🇵</span><div><div style='font-size:10px;font-weight:700;color:#1c1c1e'>Japanese</div><div style='font-size:8.5px;color:#8e8e93'>초급 · 320 XP</div></div>
+    </div>
+    <div style='background:#f8f8f8;border-radius:8px;padding:7px 9px;display:flex;align-items:center;gap:8px'>
+      <span style='font-size:16px'>🇫🇷</span><div><div style='font-size:10px;font-weight:700;color:#1c1c1e'>French</div><div style='font-size:8.5px;color:#8e8e93'>시작하기 →</div></div>
+    </div>
+  </div>
+</div>`],
+   ac:['듀오링고(Duolingo): 언어 학습','Duolingo','듀오링고','영어 공부 앱','언어 학습','영어 회화','듀오링고 플러스','Duolingo English','영어 무료 앱','언어 공부'],
+   decoy:{name:'말해보카',desc:'영단어 말하기 학습',meta:'★★★★☆ 4.6만 · Malhae · #3 교육',bg:['#3b82f6','#06b6d4'],installed:false,
+     prevColors:[['#3b82f6','#60a5fa','#fff'],['#06b6d4','#22d3ee','#fff']]}
+  },
+  {id:7, keyword:'FC 모바일', name:'FC 모바일', dev:'Electronic Arts', desc:'언제 어디서나 FC 모바일!',
+   cat:'게임', rating:'4.3', age:'4+', rank:'#7', ratingCount:'32.7만', ver:'버전 12.0.1', date:'4일 전',
+   news:'경기 안정성과 선수 업데이트를 진행했어요.',
+   colors:['#1e3a8a','#111827'],
+   prevColors:[['#1e3a8a','#111827','#fff'],['#2563eb','#0f172a','#fff']],
+   prevHTML:[`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#1e3a8a,#111827);border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:800;color:#60a5fa;margin-bottom:6px'>⚽ FC 모바일</div>
+  <div style='background:rgba(255,255,255,.08);border-radius:8px;padding:7px;margin-bottom:5px'>
+    <div style='font-size:10px;font-weight:700;color:#fff;margin-bottom:3px'>VS 매치</div>
+    <div style='display:flex;justify-content:space-between;align-items:center'>
+      <div style='text-align:center'><div style='font-size:16px'>🏆</div><div style='font-size:8.5px;font-weight:700;color:#fff'>내 팀</div></div>
+      <div style='font-size:14px;font-weight:900;color:#60a5fa'>2 - 1</div>
+      <div style='text-align:center'><div style='font-size:16px'>⚔️</div><div style='font-size:8.5px;font-weight:700;color:#fff'>상대팀</div></div>
+    </div>
+  </div>
+  <div style='display:flex;gap:4px'>
+    <div style='flex:1;background:rgba(255,255,255,.08);border-radius:7px;padding:5px;text-align:center'><div style='font-size:9px;font-weight:700;color:#fff'>슛</div><div style='font-size:11px;font-weight:900;color:#60a5fa'>8</div></div>
+    <div style='flex:1;background:rgba(255,255,255,.08);border-radius:7px;padding:5px;text-align:center'><div style='font-size:9px;font-weight:700;color:#fff'>패스</div><div style='font-size:11px;font-weight:900;color:#60a5fa'>143</div></div>
+    <div style='flex:1;background:rgba(255,255,255,.08);border-radius:7px;padding:5px;text-align:center'><div style='font-size:9px;font-weight:700;color:#fff'>점유</div><div style='font-size:11px;font-weight:900;color:#60a5fa'>58%</div></div>
+  </div>
+</div>`,`<div style='font-family:-apple-system,sans-serif;height:100%;background:linear-gradient(160deg,#2563eb,#0f172a);border-radius:inherit;overflow:hidden;padding:10px'>
+  <div style='font-size:9px;font-weight:800;color:#93c5fd;margin-bottom:5px'>선수 카드</div>
+  <div style='background:rgba(255,255,255,.1);border-radius:10px;padding:8px;text-align:center;margin-bottom:5px'>
+    <div style='font-size:20px;margin-bottom:3px'>⭐</div>
+    <div style='background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:6px;padding:2px 8px;display:inline-block;font-size:8.5px;font-weight:900;color:#1c1c1e;margin-bottom:3px'>OVR 94</div>
+    <div style='font-size:10px;font-weight:700;color:#fff'>손흥민</div>
+    <div style='font-size:8.5px;color:#93c5fd'>ST · 토트넘</div>
+  </div>
+  <div style='display:flex;gap:4px'>
+    <div style='flex:1;text-align:center'><div style='font-size:8px;color:#93c5fd'>PAC</div><div style='font-size:11px;font-weight:900;color:#fff'>97</div></div>
+    <div style='flex:1;text-align:center'><div style='font-size:8px;color:#93c5fd'>SHO</div><div style='font-size:11px;font-weight:900;color:#fff'>94</div></div>
+    <div style='flex:1;text-align:center'><div style='font-size:8px;color:#93c5fd'>DRI</div><div style='font-size:11px;font-weight:900;color:#fff'>93</div></div>
+  </div>
+</div>`],
+   ac:['FC 모바일','FC Mobile','FIFA 모바일','EA Sports FC','피파 모바일','FC 온라인 모바일','축구 게임','EA FC 모바일','FC 23 모바일','FC 24'],
+   decoy:{name:'야구 9이닝스',desc:'2024 모바일 야구',meta:'★★★★☆ 6.2만 · Com2uS · #11 게임',bg:['#1d4ed8','#0f172a'],installed:false,
+     prevColors:[['#1d4ed8','#2563eb','#fff'],['#0f172a','#1e293b','#fff']]}
+  }
+];
+
+/* ─── 8 CONDITIONS ─── */
+/* keyframes for progress position */
+const NORMAL15=[{t:0,p:0},{t:1500,p:10},{t:3000,p:20},{t:4500,p:30},{t:6000,p:40},{t:7500,p:50},{t:9000,p:60},{t:10500,p:70},{t:12000,p:80},{t:13500,p:90},{t:14990,p:99},{t:15000,p:100}]; // 연습 앱: 로딩 UI 등장 후 정확히 15초
+const SA15=[{t:0,p:0},{t:484,p:15},{t:967,p:35},{t:1936,p:70},{t:3387,p:82},{t:5322,p:88},{t:8226,p:93},{t:12097,p:97},{t:15000,p:100}];
+const SD15=[{t:0,p:0},{t:967,p:5},{t:2903,p:10},{t:7742,p:13},{t:10645,p:18},{t:12097,p:25},{t:13065,p:40},{t:14032,p:70},{t:14516,p:90},{t:15000,p:100}];
+const SA10=[{t:0,p:0},{t:285,p:15},{t:667,p:35},{t:1238,p:70},{t:2381,p:82},{t:3619,p:88},{t:5524,p:93},{t:8095,p:97},{t:9990,p:99},{t:10000,p:100}];
+const SD10=[{t:0,p:0},{t:667,p:5},{t:1905,p:10},{t:5048,p:13},{t:6952,p:18},{t:7619,p:25},{t:8381,p:40},{t:9048,p:70},{t:9714,p:90},{t:10000,p:100}];
+const CONDS=[
+  {id:0,wavy:false,sched:SA15,spin:false,dur:CONDITION_LOADING_MS},
+  {id:1,wavy:false,sched:SD15,spin:false,dur:CONDITION_LOADING_MS},
+  {id:2,wavy:true, sched:SA15,spin:false,dur:CONDITION_LOADING_MS},
+  {id:3,wavy:true, sched:SD15,spin:false,dur:CONDITION_LOADING_MS},
+  {id:4,wavy:false,sched:SA10,spin:true, dur:CONDITION_LOADING_MS},
+  {id:5,wavy:false,sched:SD10,spin:true, dur:CONDITION_LOADING_MS},
+  {id:6,wavy:true, sched:SA10,spin:true, dur:CONDITION_LOADING_MS},
+  {id:7,wavy:true, sched:SD10,spin:true, dur:CONDITION_LOADING_MS},
+];
+const COND_DESC={
+  A:'15초 초반 가속 / 선형',
+  B:'15초 후반 가속 / 선형',
+  C:'15초 초반 가속 / 구불',
+  D:'15초 후반 가속 / 구불',
+  E:'10초 초반 가속 + 5초 회전 / 선형',
+  F:'10초 후반 가속 + 5초 회전 / 선형',
+  G:'10초 초반 가속 + 5초 회전 / 구불',
+  H:'10초 후반 가속 + 5초 회전 / 구불'
+};
+
+/* Williams 8×8 Balanced Latin Square */
+const LS=[
+  [0,1,7,2,6,3,5,4],
+  [1,2,0,3,7,4,6,5],
+  [2,3,1,4,0,5,7,6],
+  [3,4,2,5,1,6,0,7],
+  [4,5,3,6,2,7,1,0],
+  [5,6,4,7,3,0,2,1],
+  [6,7,5,0,4,1,3,2],
+  [7,0,6,1,5,2,4,3],
+];
+
+/* ─── STATE ─── */
+let PID='', ORDER=LS[0], appIdx=0, practiceAns={}, curAns={}, responses=[], finalShort=null, finalPref=null;
+let activeLoader=null, replayLoader=null;
+const done = new Set();
+
+function ansObj(){return{q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:null,q9:null,q10:null,q11:null,q12:null,time:''}}
+function curTrialApp(){return APPS[appIdx];}
+
+/* ═══════════════════════════════════════════
+   SCREEN NAV
+═══════════════════════════════════════════ */
+function go(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  const t=document.getElementById(id);
+  t.classList.add('on');
+  t.scrollTop=0;
+}
+
+/* ═══════════════════════════════════════════
+   CANVAS LOADER
+═══════════════════════════════════════════ */
+const SW=3.0, SW_WAVY=1.8, AMP=2.5, FREQ=16, FLOW=7, SPIN_AT=10000;
+function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t}
+
+class Loader{
+  constructor(canvasId, wavy, sched, hasSpin, duration, onDone, linear=false){
+    this.cv=typeof canvasId === 'string' ? document.getElementById(canvasId) : canvasId;
+    this.ctx=this.cv ? this.cv.getContext('2d') : null;
+    this.wavy=wavy; this.sched=sched; this.hasSpin=hasSpin; this.linear=linear;
+    this.duration=duration; this.onDone=onDone;
+    this.angle=-Math.PI/2; this.done=false; this.doneAt=0;
+    this.raf=null; this.t0=null; this._finished=false;
+    this._doneTimer=null; this._surveyTimer=null;
+    if(this.cv) this._size();
+  }
+  _size(){
+    const dpr=devicePixelRatio||1, cs=parseFloat(this.cv.style.width)||76;
+    this.cv.style.width=cs+'px'; this.cv.style.height=cs+'px';
+    this.cv.width=Math.round(cs*dpr); this.cv.height=Math.round(cs*dpr);
+    this.R=cs*.38; this.CX=cs/2; this.CY=cs/2;
+  }
+  start(){
+    this._removeOpenButton();
+    if(this.cv) this.cv.style.display='block';
+    this._openShown=false;
+    this._finished=false;
+    this.done=false;
+    this.t0=null;
+    // RAF now 파라미터만 사용 — setTimeout/performance.now 혼용 없음
+    this.raf=requestAnimationFrame(t=>this._loop(t));
+  }
+  _removeOpenButton(){
+    if(!this.cv || !this.cv.parentElement) return;
+    const old=this.cv.parentElement.querySelector('.open-after-download');
+    if(old) old.remove();
+  }
+  _showOpenButton(){
+    if(this._openShown || !this.cv || !this.cv.parentElement) return;
+    this._openShown=true;
+    this.cv.style.display='none';
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='open-after-download';
+    btn.textContent='열기';
+    this.cv.parentElement.appendChild(btn);
+  }
+  stop(){
+    if(this.raf){cancelAnimationFrame(this.raf);this.raf=null;}
+    this._finished=true;
+  }
+  _loop(now){
+    // 첫 프레임: RAF now 기준으로 t0 설정
+    // → 화면에 첫 픽셀이 그려지는 순간부터 경과시간 측정
+    if(this.t0===null){
+      this.t0=now;
+      this.raf=requestAnimationFrame(t=>this._loop(t));
+      return;
+    }
+    const el=now-this.t0; // RAF 타임스탬프 기준 경과시간 (ms)
+    const shown=Math.min(el,this.duration);
+    this._update(shown);
+    this._draw(shown);
+    // 15초 정각: 완료 처리
+    if(el>=this.duration){
+      if(!this._openShown) this._showOpenButton();
+      // 열기 버튼 700ms 유지 후 설문
+      if(el>=this.duration+700){
+        if(!this._finished){
+          this._finished=true;
+          if(this.onDone) this.onDone();
+        }
+        return;
+      }
+    }
+    this.raf=requestAnimationFrame(t=>this._loop(t));
+  }
+  _update(el){
+    if(el>=this.duration){if(!this.done){this.doneAt=el;}this.done=true;this.angle=-Math.PI/2+Math.PI*2;return;}
+    this.done=false;
+    const spinAt=Math.min(SPIN_AT,this.duration);
+    const clamped=this.hasSpin?Math.min(el,spinAt):el;
+    let pct=0;
+    if(this.linear){
+      // 연습용: 15초 동안 균일하게 진행
+      pct=(el/this.duration)*100;
+    } else {
+      // 원본 로딩 UI 방식: 지정 시점까지 멈춰 있다가, 해당 시점에서 짧게 이동하고 다시 멈춤
+      const MOVE_MS=420;
+      pct=this.sched[0]?.p ?? 0;
+      for(let i=1;i<this.sched.length;i++){
+        const prev=this.sched[i-1], cur=this.sched[i];
+        if(clamped < cur.t){
+          pct=prev.p;
+          break;
+        }
+        if(clamped >= cur.t && clamped < cur.t + MOVE_MS){
+          const r=Math.max(0,Math.min(1,(clamped-cur.t)/MOVE_MS));
+          pct=prev.p+(cur.p-prev.p)*eio(r);
+          break;
+        }
+        pct=cur.p;
+      }
+    }
+    // 15초가 되기 전에는 시각적으로 100% 완료 상태가 먼저 보이지 않도록 제한
+    if(el < this.duration) pct=Math.min(pct,99);
+    this.angle=-Math.PI/2+(pct/100)*Math.PI*2;
+  }
+  _draw(el){
+    const{ctx,CX,CY,R}=this, dpr=devicePixelRatio||1, wt=el/1000;
+    ctx.clearRect(0,0,this.cv.width,this.cv.height);
+    ctx.save(); ctx.scale(dpr,dpr);
+    const sA=-Math.PI/2, fA=sA+Math.PI*2;
+    // 로딩 UI 등장 시점 통일용: 진행률이 0%인 조건도 같은 순간에 회색 기본 원이 보이도록 함
+    ctx.beginPath(); ctx.arc(CX,CY,R,sA,fA);
+    ctx.strokeStyle='#E5E5EA'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();
+    if(this.done){
+      ctx.beginPath(); ctx.arc(CX,CY,R,sA,fA);
+      ctx.strokeStyle='#007AFF'; ctx.lineWidth=SW; ctx.lineCap='butt'; ctx.stroke();
+      /* 완료 후 체크 표시 대신 '열기' 버튼으로 전환 */
+    } else if(this.hasSpin && el>Math.min(SPIN_AT,this.duration)){
+      ctx.beginPath(); ctx.arc(CX,CY,R,sA,fA); ctx.strokeStyle='#E5E5EA'; ctx.lineWidth=SW; ctx.lineCap='butt'; ctx.stroke();
+      const rot=(el-Math.min(SPIN_AT,this.duration))/1000*Math.PI*2*1.8-Math.PI/2;
+      ctx.beginPath(); ctx.arc(CX,CY,R,rot,rot+Math.PI*1.5); ctx.strokeStyle='#007AFF'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();
+    } else {
+      const eA=this.angle, span=eA-sA;
+      if(span>0.05){
+        const gs=eA+SW/2/R, ge=fA-SW/2/R;
+        if(gs<ge){ctx.beginPath(); ctx.arc(CX,CY,R,gs,ge); ctx.strokeStyle='#E5E5EA'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();}
+      }
+      if(span>0.01){
+        if(!this.wavy){
+          ctx.beginPath(); ctx.arc(CX,CY,R,sA,eA); ctx.strokeStyle='#007AFF'; ctx.lineWidth=SW; ctx.lineCap='round'; ctx.stroke();
+        } else {
+          const segs=220, pts=[];
+          for(let i=0;i<=segs;i++){const t=i/segs,a=sA+t*span,ph=(a/(Math.PI*2))*Math.PI*2*FREQ-wt*FLOW;pts.push([CX+(R+AMP*Math.sin(ph))*Math.cos(a),CY+(R+AMP*Math.sin(ph))*Math.sin(a)]);}
+          ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+          for(let i=1;i<segs;i++){const mx=(pts[i-1][0]+pts[i][0])/2,my=(pts[i-1][1]+pts[i][1])/2;ctx.quadraticCurveTo(pts[i-1][0],pts[i-1][1],mx,my);}
+          ctx.lineTo(pts[segs][0],pts[segs][1]);
+          ctx.strokeStyle='#007AFF'; ctx.lineWidth=SW_WAVY; ctx.lineCap='round'; ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SVG ICON HELPERS
+═══════════════════════════════════════════ */
+function iconEl(app, size=110){
+  const d=document.createElement('div');
+  d.style.cssText=`width:${size}px;height:${size}px;border-radius:${size*.24}px;background:linear-gradient(165deg,${app.colors[0]},${app.colors[1]});display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0`;
+  d.innerHTML=ICONS[app.id];
+  return d;
+}
+function iconElStr(app, size=64){
+  return `<div style="width:${size}px;height:${size}px;border-radius:${size*.24}px;background:linear-gradient(165deg,${app.colors[0]},${app.colors[1]});display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">${ICONS[app.id]}</div>`;
+}
+
+/* ═══════════════════════════════════════════
+   START
+═══════════════════════════════════════════ */
+function startExp(){
+  PID=(document.getElementById('pid-inp').value||'').trim();
+  if(!PID){alert('참가자 번호를 입력해주세요.');return}
+  ORDER=LS[((parseInt(PID)-1)%8+8)%8];
+  responses=[]; done.clear(); appIdx=0; practiceAns=ansObj(); curAns=ansObj();
+  go('s-notice');
+  setTimeout(startPractice, 2600);
+}
+
+/* ═══════════════════════════════════════════
+   PRACTICE
+═══════════════════════════════════════════ */
+function startPractice(){
+  go('s-pload');
+  if(activeLoader){activeLoader.stop(); activeLoader=null;}
+  const btn=document.getElementById('practice-get-btn');
+  const cvp=document.getElementById('cv-p');
+  if(btn){btn.style.display='inline-flex'; btn.disabled=false; btn.textContent='받기'; btn.removeAttribute('data-loading'); btn.style.visibility='visible';}
+  if(cvp){
+    cvp.style.display='none';
+    const sz=38, dpr=devicePixelRatio||1;
+    cvp.style.width=sz+'px'; cvp.style.height=sz+'px';
+    cvp.width=Math.round(sz*dpr); cvp.height=Math.round(sz*dpr);
+  }
+}
+
+function beginPracticeDownload(){
+  const btn=document.getElementById('practice-get-btn');
+  const cvp=document.getElementById('cv-p');
+  if(btn){
+    if(btn.dataset.loading) return;
+    btn.dataset.loading='1';
+    btn.disabled=true;
+    btn.style.display='none';      // 클릭 즉시 받기 버튼 제거
+    btn.style.opacity='1';
+  }
+  if(activeLoader){activeLoader.stop(); activeLoader=null;}
+
+  // 버튼 제거 직후 canvas를 먼저 준비하고, 0.6초 동안은 숨김 처리
+  // 조건별 canvas 생성/첫 그리기 비용 차이가 로딩 UI 등장 시점에 영향을 주지 않게 함
+  if(cvp){
+    const sz=38, dpr=devicePixelRatio||1;
+    cvp.style.width=sz+'px';
+    cvp.style.height=sz+'px';
+    cvp.width=Math.round(sz*dpr);
+    cvp.height=Math.round(sz*dpr);
+    cvp.style.display='block';
+    cvp.style.visibility='hidden';
+  }
+
+  activeLoader=new Loader('cv-p',false,NORMAL15,false,FIXED_LOADING_MS,()=>{
+    buildSurvey('s-psurvey','pl',false);
+    bindLikerts('pl',practiceAns);
+    go('s-psurvey');
+  }, true);
+  activeLoader._update(0);
+  activeLoader._draw(0); // 숨겨진 상태에서 첫 프레임 미리 그리기
+
+  setTimeout(()=>{
+    if(cvp) cvp.style.visibility='visible';
+    activeLoader.start();
+  }, LOADING_APPEAR_DELAY_MS);
+}
+function endPractice(){
+  const e=validate(practiceAns,'pl-time');
+  if(e){alert(e);return}
+  appIdx=0;
+  renderSearchIdle();
+}
+
+/* ═══════════════════════════════════════════
+   SEARCH FLOW
+═══════════════════════════════════════════ */
+function setTab(i){
+  document.querySelectorAll('#tabbar-search .tab').forEach((t,j)=>t.classList.toggle('on',j===i));
+  // all tabs lead to search for this experiment
+  renderSearchIdle();
+}
+
+function renderSearchIdle(){
+  go('s-search');
+  document.querySelectorAll('#tabbar-search .tab').forEach((t,j)=>t.classList.toggle('on',j===3));
+  const app=curTrialApp();
+  const n=done.size;
+  document.getElementById('search-top').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:30px;font-weight:900;letter-spacing:-.045em;color:#1c1c1e">검색</div>
+      <div class="progress-pill">${n}/8 완료</div>
+    </div>
+    <div class="search-bar" onclick="renderSearchActive()">
+      ${qSvg('#8e8e93')}
+      <span style="font-size:16px;color:#8e8e93">게임, 앱, 스토리 등</span>
+    </div>`;
+  document.getElementById('search-body').innerHTML=`
+    <div style="background:#f2f2f7;padding:14px 16px;border-radius:14px;margin:14px 14px 18px;border:1px solid rgba(0,0,0,.06)">
+      <div style="font-size:13px;font-weight:700;color:#1c1c1e;margin-bottom:4px">${n+1}/8 번째 앱을 다운로드해주세요</div>
+      <div style="font-size:12.5px;color:#6e6e73;line-height:1.55">검색창을 탭하고 <b style="color:#007AFF">"${app.keyword}"</b>을 입력하세요</div>
+    </div>
+    <div style="font-size:19px;font-weight:700;color:#1c1c1e;padding:0 16px 8px">추천 검색어</div>
+    ${app.ac.map((s,i)=>`
+    <div class="sugg-row" onclick="renderSearchActive('${escAttr(s)}')">
+      <div class="sugg-icon">${qSvg()}</div>
+      <span class="sugg-text">${esc(s)}</span>
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="transform:rotate(45deg);flex-shrink:0"><path d="M1 9L9 1M9 1H3M9 1v6" stroke="#c7c7cc" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>`).join('')}
+  `;
+}
+
+function renderSearchActive(prefill=''){
+  go('s-search');
+  const app=curTrialApp();
+  const all=app.ac;
+  document.getElementById('search-top').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="search-bar" style="flex:1">
+        ${qSvg()}
+        <input id="real-inp" type="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+          value="${esc(prefill)}" placeholder="게임, 앱, 스토리 등"
+          style="flex:1;border:0;outline:0;background:transparent;font-size:16px!important;color:#1c1c1e;font-family:inherit;caret-color:#007AFF;min-width:0">
+        <button id="clr-btn" onclick="clrInput()" style="border:0;background:none;padding:0;display:${prefill?'flex':'none'};cursor:pointer;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#c7c7cc"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <button class="cancel-btn" onclick="renderSearchIdle()">취소</button>
+    </div>`;
+  renderSuggs(prefill, all);
+  const inp=document.getElementById('real-inp');
+  if(inp){
+    inp.focus();
+    inp.addEventListener('input',()=>renderSuggs(inp.value,all));
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderSearchResults(inp.value||app.keyword);}});
+    inp.addEventListener('compositionend',()=>renderSuggs(inp.value,all));
+    const c=document.getElementById('clr-btn');
+    if(c) c.addEventListener('click',()=>{ inp.value=''; renderSuggs('',all); inp.focus(); });
+  }
+}
+
+function renderSuggs(q, all){
+  const qL=q.toLowerCase();
+  const sugg=q?all.filter(s=>s.toLowerCase().includes(qL)):all;
+  const clr=document.getElementById('clr-btn');
+  if(clr) clr.style.display=q?'flex':'none';
+  document.getElementById('search-body').innerHTML=sugg.map(s=>`
+  <div class="sugg-row" onclick="renderSearchResults('${escAttr(s)}')">
+    ${qSvg()}
+    <span class="sugg-text">${esc(s)}</span>
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="transform:rotate(45deg);flex-shrink:0"><path d="M1 9L9 1M9 1H3M9 1v6" stroke="#c7c7cc" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>`).join('')||`<div style="padding:32px 16px;text-align:center;color:#8e8e93;font-size:15px">결과 없음</div>`;
+}
+
+function renderSearchResults(term){
+  go('s-search');
+  const app=curTrialApp();
+  const dec=app.decoy;
+  document.getElementById('search-top').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="search-bar" style="flex:1" onclick="renderSearchActive('${escAttr(term)}')">
+        ${qSvg()}
+        <span style="font-size:16px;color:#1c1c1e;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(term)}</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#c7c7cc"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <button class="cancel-btn" onclick="renderSearchIdle()">취소</button>
+    </div>`;
+  /* target app previews */
+  const prevCards=app.prevColors.map((c,pi)=>`<div class="result-prev-card" style="background:linear-gradient(160deg,${c[0]},${c[1]});overflow:hidden;position:relative">${app.prevHTML?.[pi]||`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${c[2]};text-align:center;padding:12px">${esc(app.name)}</div>`}</div>`).join('');
+  const decPrevCards=dec.prevColors.slice(0,2).map(c=>`<div class="result-prev-card" style="background:linear-gradient(160deg,${c[0]},${c[1]})"></div>`).join('');
+  document.getElementById('search-body').innerHTML=`
+    <div class="section-hdr">앱</div>
+    <!-- TARGET APP -->
+    <div class="result-row" onclick="selectApp(${app.id})">
+      <div class="result-icon" style="background:linear-gradient(165deg,${app.colors[0]},${app.colors[1]});overflow:hidden;display:flex;align-items:center;justify-content:center">${ICONS[app.id]}</div>
+      <div style="flex:1;min-width:0">
+        <div class="result-name">${esc(app.name)}</div>
+        <div class="result-desc">${esc(app.desc)}</div>
+        <div class="result-meta">${starsHtml(parseFloat(app.rating),true)} <span style="color:#C7C7CC;font-size:10.5px">${app.rating} · ${esc(app.dev)} · ${app.rank} ${esc(app.cat)}</span></div>
+      </div>
+      <button class="result-get" onclick="event.stopPropagation();selectApp(${app.id})">받기</button>
+    </div>
+    <!-- TARGET PREVIEWS -->
+    <div class="result-prev-row">${prevCards}</div>
+    <!-- DECOY APP -->
+    <div class="result-row">
+      <div class="result-icon" style="background:linear-gradient(165deg,${dec.bg[0]},${dec.bg[1]});font-size:24px;display:flex;align-items:center;justify-content:center">${dec.installed?'⚡':'⬇'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="result-name">${esc(dec.name)}</div>
+        <div class="result-desc">${esc(dec.desc)}</div>
+        <div class="result-meta">${esc(dec.meta)}</div>
+      </div>
+      ${dec.installed
+        ? `<div style="min-width:66px;height:30px;border-radius:999px;background:#e5e5ea;color:#8e8e93;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">열기</div>`
+        : `<button class="result-get" style="background:transparent;border:0;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center">
+             <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="#007AFF" stroke-width="1.5"/><path d="M8.5 13.5l5.5 5.5 5.5-5.5M14 7v13" stroke="#007AFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+           </button>`}
+    </div>
+    <div class="result-prev-row">${decPrevCards}</div>
+  `;
+}
+
+function clrInput(){
+  const i=document.getElementById('real-inp');
+  if(i){i.value='';i.focus();}
+  const c=document.getElementById('clr-btn');
+  if(c) c.style.display='none';
+  renderSuggs('', curTrialApp().ac);
+}
+
+/* ═══════════════════════════════════════════
+   APP DETAIL
+═══════════════════════════════════════════ */
+function resetDetailDownloadButton(){
+  const infoDiv=document.querySelector('#s-detail .d-hero-row > div:nth-child(2)');
+  if(!infoDiv) return null;
+  infoDiv.querySelectorAll('#d-get-btn, canvas, .open-after-download').forEach(e=>e.remove());
+  const b=document.createElement('button');
+  b.className='d-get';
+  b.id='d-get-btn';
+  b.type='button';
+  b.textContent='받기';
+  b.disabled=false;
+  b.style.display='inline-flex';
+  b.onclick=startDownload;
+  infoDiv.appendChild(b);
+  return b;
+}
+
+function selectApp(id){
+  const app=APPS[id];
+
+  /* 이전 로딩으로 교체된 캔버스/열기버튼 제거 → 받기 버튼 항상 새로 생성 */
+  if(activeLoader){activeLoader.stop(); activeLoader=null;}
+  resetDetailDownloadButton();
+
+  /* appIdx는 trial index로 유지 */
+  document.getElementById('d-icon').innerHTML=`<div style="width:110px;height:110px;border-radius:26px;background:linear-gradient(165deg,${app.colors[0]},${app.colors[1]});display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${ICONS[id]}</div>`;
+  document.getElementById('d-name').textContent=app.name;
+  document.getElementById('d-dev').textContent=app.dev;
+  document.getElementById('d-rating').textContent=app.rating;
+  document.getElementById('d-rating-count').textContent=(app.ratingCount||'') + '개의 평가';
+  document.getElementById('d-stars').innerHTML=starsHtml(parseFloat(app.rating),true);
+  document.getElementById('d-age').textContent=app.age;
+  document.getElementById('d-rank').textContent=app.rank;
+  document.getElementById('d-rank-cat').textContent=app.cat;
+  document.getElementById('d-cat').textContent=app.cat;
+  const devShort=app.dev.length>8?app.dev.slice(0,8)+'…':app.dev;
+  document.getElementById('d-dev-short').textContent=devShort;
+  document.getElementById('d-news').textContent=app.news;
+  document.getElementById('d-ver').textContent=`${app.ver} • ${app.date}`;
+  const pr=document.getElementById('d-prev-row');
+  pr.innerHTML=app.prevColors.map((c,pi)=>`<div class="d-prev-card" style="background:linear-gradient(160deg,${c[0]},${c[1]});overflow:hidden;position:relative">${app.prevHTML?.[pi]||`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${c[2]};text-align:center;padding:12px">${esc(app.name)}</div>`}</div>`).join('');
+  go('s-detail');
+}
+
+/* ═══════════════════════════════════════════
+   DOWNLOAD → LOADING
+═══════════════════════════════════════════ */
+function startDownload(){
+  const app=curTrialApp();
+  const condId=ORDER[appIdx];
+  const cond=CONDS[condId];
+
+  const btn=document.getElementById('d-get-btn');
+  if(!btn) return;
+
+  // 이미 로딩 중이면 무시
+  if(btn.dataset.loading) return;
+  btn.dataset.loading='1';
+  btn.disabled=true;
+  btn.style.display='none';      // 클릭 즉시 받기 버튼 제거
+  btn.style.opacity='1';
+
+  if(activeLoader){activeLoader.stop(); activeLoader=null;}
+
+  const sz=38; // 받기 버튼과 동일한 크기
+  const dpr=devicePixelRatio||1;
+  const cv=document.createElement('canvas');
+  cv.style.width=sz+'px';
+  cv.style.height=sz+'px';
+  cv.style.marginTop='12px';
+  cv.style.display='block';
+  cv.style.visibility='hidden';  // 0.6초 동안은 준비만 해두고 보이지 않게 함
+  cv.width=Math.round(sz*dpr);
+  cv.height=Math.round(sz*dpr);
+  btn.replaceWith(cv);
+
+  // 상단으로 스크롤 (아이콘+로딩 원 보이게)
+  const ds=document.querySelector('#s-detail .detail-scroll');
+  if(ds) ds.scrollTop=0;
+
+  // 조건별 wavy/후반가속 계산 차이로 첫 프레임이 늦게 뜨지 않도록 미리 그려둠
+  activeLoader=new Loader(cv,cond.wavy,cond.sched,cond.spin,cond.dur,()=>afterDownload(app,cond));
+  activeLoader._update(0);
+  activeLoader._draw(0);
+
+  // 받기 클릭 후 로딩 UI 등장까지의 지연을 8개 조건 모두 0.6초로 고정
+  setTimeout(()=>{
+    cv.style.visibility='visible';
+    activeLoader.start();
+  }, LOADING_APPEAR_DELAY_MS);
+}
+function afterDownload(app, cond){
+  curAns=ansObj();
+  buildSurvey('s-survey','ml',true);
+  bindLikerts('ml',curAns);
+  const fl=document.getElementById('prog-fill'), lb=document.getElementById('prog-lbl'), tg=document.getElementById('trial-tag');
+  if(fl) fl.style.width=((done.size+1)/8*100)+'%';
+  if(lb) lb.textContent=`${done.size+1} / 8 완료`;
+  if(tg) tg.textContent=`다운로드 ${done.size+1}`;
+  go('s-survey');
+}
+
+/* ═══════════════════════════════════════════
+   SURVEY
+═══════════════════════════════════════════ */
+
+const QS=[
+  {sec:'시간 지각', q:'1. 이 로딩 화면을 기다리는 동안 시간이 길게 느껴졌습니까?', k:'q1', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'', q:'2. 실제로 몇 초 정도로 느껴졌습니까?', k:'time'},
+  {sec:'', q:'3. 기다리는 동안 시간이 얼마나 빠르게 흘렀다고 느끼셨습니까?', k:'q2', L:'매우 느리게', R:'매우 빠르게'},
+  {sec:'지각된 속도', q:'4. 로딩 진행 속도의 변화는 어떻게 느껴졌습니까?', k:'q3', L:'초반 빠름→후반 느림', R:'초반 느림→후반 빠름'},
+  {sec:'진행 투명성', q:'5. 로딩이 언제 끝날지 예측할 수 있었습니까?', k:'q4', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'', q:'6. 로딩 진행 상황이 명확하게 전달되었습니까?', k:'q5', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'감정 반응', q:'7. 기다리는 동안 답답함을 느끼셨습니까?', k:'q6', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'주의 집중', q:'8. 기다리는 동안 화면에 집중하게 되었습니까?', k:'q7', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'전반적 평가', q:'9. 전반적으로 이 로딩 방식에 만족하셨습니까?', k:'q8', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'행동 의도', q:'10. 이 상황에서 앱을 종료하고 싶다는 생각이 들었습니까?', k:'q9', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'사용 의향', q:'11. 이 로딩 방식을 사용하는 앱을 계속 사용할 의향이 있으십니까?', k:'q10', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'선호도', q:'12. 이 로딩 방식은 다른 로딩 방식보다 더 선호된다고 느끼셨습니까?', k:'q11', L:'전혀 아니다', R:'매우 그렇다'},
+  {sec:'주의 분산', q:'13. 기다리는 동안 로딩 인디케이터 외의 다른 화면 요소(앱 설명, 미리보기 등)에 시선이 분산되었습니까?', k:'q12', L:'전혀 아니다', R:'매우 그렇다'},
+];
+
+
+function buildSurvey(screenId, pfx, isMain){
+  const prog=isMain?`<div class="survey-sticky"><div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div><div class="prog-text"><span id="trial-tag">다운로드 1</span><span id="prog-lbl">0 / 8 완료</span></div></div>`:'';
+  const kicker=isMain?`<span id="trial-tag2">다운로드 ${done.size+1}</span>`:'연습 시행';
+  const btnTxt=isMain?'다음으로 이동':'연습 완료 → 실험 시작';
+  const action=isMain?'submitSurvey()':'endPractice()';
+  let body='', li=1;
+  QS.forEach(row=>{
+    if(row.sec) body+=`<div class="sec-lbl">${row.sec}</div>`;
+    if(row.k==='time'){
+      body+=`<div class="q-card"><div class="q-text">${row.q}</div><div class="num-wrap"><input class="num-input" type="number" id="${pfx}-time" placeholder="예: 12" inputmode="numeric"><div class="num-help">정확하지 않아도 괜찮습니다. 체감상 느껴진 시간을 숫자로 입력해주세요.</div></div></div>`;
+    } else {
+      body+=`<div class="q-card"><div class="q-text">${row.q}</div><div class="likert-row" id="${pfx}-${li++}"></div><div class="likert-ends ${row.k === 'q3' ? 'speed-mid' : ''}"><span>${row.L}</span><span>${row.R}</span></div></div>`;
+    }
+  });
+  document.getElementById(screenId).innerHTML=`${prog}<div class="s-body"><div class="s-head"><div class="s-kicker">${kicker}</div><div class="s-title">방금 본 로딩 화면을 평가해주세요</div><div class="s-sub">모든 문항은 7점 척도입니다. 양 끝 레이블을 확인하고 응답해주세요.</div></div>${body}<button class="survey-submit" onclick="${action}">${btnTxt}</button></div>`;
+}
+
+function bindLikerts(pfx, store){
+  let li=1;
+  QS.forEach(row=>{
+    if(row.k==='time') return;
+    const id=`${pfx}-${li++}`;
+    const el=document.getElementById(id); if(!el) return;
+    el.innerHTML='';
+    for(let v=1;v<=7;v++){
+      const b=document.createElement('button'); b.type='button'; b.className='lbtn'; b.textContent=v;
+      const key=row.k; const val=v;
+      b.onclick=()=>{el.querySelectorAll('.lbtn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');store[key]=val};
+      el.appendChild(b);
+    }
+  });
+}
+
+function validate(store, timeId){
+  const ks=['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12'];
+  if(ks.some(k=>!store[k])) return '모든 설문 문항에 응답해주세요.';
+  const t=(document.getElementById(timeId)?.value||'').trim();
+  if(!t) return '예상 소요 시간을 입력해주세요.';
+  store.time=t; return null;
+}
+
+function submitSurvey(){
+  const e=validate(curAns,`ml-time`);
+  if(e){alert(e);return}
+  const app=curTrialApp();
+  const condId=ORDER[done.size];
+  const cond=CONDS[condId];
+  responses.push({
+    trialOrder:done.size+1, participantId:PID,
+    latinRow:ORDER.map(x=>x+1).join(','),
+    appOrder:appIdx+1, appId:app.id, appName:app.name, appKeyword:app.keyword,
+    condId:cond.id, condLabel:String.fromCharCode(65+condId), condDesc:COND_DESC[String.fromCharCode(65+condId)]||'', condWavy:cond.wavy, condSpin:cond.spin,
+    perceivedDuration:curAns.q1, timeEstimate:curAns.time, speedPerception:curAns.q2,
+    speedPattern:curAns.q3, progressPredictability:curAns.q4, progressClarity:curAns.q5,
+    frustration:curAns.q6, attention:curAns.q7, satisfaction:curAns.q8, exitIntent:curAns.q9,
+    usageIntent:curAns.q10, preference:curAns.q11, attentionDiverted:curAns.q12
+  });
+  done.add(appIdx);
+  if(done.size>=8){ buildFinalGrids(); go('s-final'); setTimeout(startMiniLoaders,100); }
+  else { appIdx=done.size; renderSearchIdle(); }
+}
+
+/* ═══════════════════════════════════════════
+   FINAL COMPARISON
+═══════════════════════════════════════════ */
+let finalShortSel=null, finalPrefSel=null;
+let miniLoaders=[];
+
+function buildFinalGrids(){
+  buildGrid('grid-short','short');
+  buildGrid('grid-pref','pref');
+}
+function buildGrid(el,type){
+  const g=document.getElementById(el); g.innerHTML='';
+  CONDS.forEach((c,i)=>{
+    const lbl=String.fromCharCode(65+i);
+    const b=document.createElement('button'); b.type='button'; b.className='cond-btn';
+    b.innerHTML=`<strong>로딩 화면 ${lbl}</strong>
+      <div class="mini-wrap">
+        <canvas class="mini-cv" data-ci="${i}" style="width:66px;height:66px"></canvas>
+        <button class="replay-tag" onclick="event.stopPropagation();openReplay(${i})">▶ 다시 보기</button>
+      </div>`;
+    b.onclick=()=>{
+      g.querySelectorAll('.cond-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      if(type==='short') finalShortSel=c.id;
+      else finalPrefSel=c.id;
+    };
+    g.appendChild(b);
+  });
+}
+
+function startMiniLoaders(){
+  miniLoaders.forEach(l=>l.stop());
+  miniLoaders=[];
+  document.querySelectorAll('.mini-cv').forEach(cv=>{
+    const ci=parseInt(cv.dataset.ci);
+    const c=CONDS[ci];
+    const dpr=devicePixelRatio||1, cs=66;
+    cv.style.width=cs+'px'; cv.style.height=cs+'px';
+    cv.width=Math.round(cs*dpr); cv.height=Math.round(cs*dpr);
+    const run=()=>{
+      const l=new Loader(cv,c.wavy,c.sched,c.spin,c.dur,()=>{setTimeout(run,600);});
+      l.R=cs*.38; l.CX=cs/2; l.CY=cs/2;
+      l.start(); miniLoaders.push(l);
+    };
+    run();
+  });
+}
+
+/* REPLAY */
+let replayL=null;
+function openReplay(ci){
+  const c=CONDS[ci], lbl=String.fromCharCode(65+ci);
+  document.getElementById('rk').textContent=`로딩 화면 ${lbl}`;
+  document.getElementById('rt').textContent='다시 보기';
+  document.getElementById('rc').style.display='none';
+  const cv=document.getElementById('cv-replay');
+  const dpr=devicePixelRatio||1, cs=Math.min(innerWidth,innerHeight)*.55;
+  cv.style.width=cs+'px'; cv.style.height=cs+'px';
+  cv.width=Math.round(cs*dpr); cv.height=Math.round(cs*dpr);
+  if(replayL){replayL.stop();}
+  document.getElementById('replay-modal').classList.add('on');
+  replayL=new Loader(cv,c.wavy,c.sched,c.spin,c.dur,()=>{document.getElementById('rc').style.display='block';});
+  replayL.R=cs*.38; replayL.CX=cs/2; replayL.CY=cs/2;
+  replayL.start();
+}
+function closeReplay(){if(replayL)replayL.stop();document.getElementById('replay-modal').classList.remove('on');}
+
+function submitFinal(){
+  if(finalShortSel===null){alert('가장 짧게 느껴진 조건을 선택해주세요.');return}
+  if(finalPrefSel===null){alert('가장 선호하는 조건을 선택해주세요.');return}
+  document.getElementById('done-pid').textContent=`참가자 번호: ${PID}`;
+  go('s-done');
+}
+
+/* ═══════════════════════════════════════════
+   SUBMIT
+═══════════════════════════════════════════ */
+const GAS = 'https://script.google.com/macros/s/AKfycbzO17f7tYt08Tftst0buM0T9O0bdfozK4FfcriQm8tzQ7xwqbteJOb-T3RX4NRMCjzl8w/exec';
+
+async function submitToSheet(){
+  const btn=document.getElementById('submit-btn');
+  const st=document.getElementById('submit-status');
+  const reason=(document.getElementById('reason-txt')?.value||'').trim();
+
+  btn.disabled=true;
+  btn.textContent='전송 중…';
+  st.textContent='';
+
+  const practiceRow = {
+    // 연습 시행도 구글 시트에 1행으로 저장
+    trialOrder:0,
+    participantId:PID,
+    latinRow:ORDER.map(x=>String.fromCharCode(65+x)).join(','),
+    appOrder:0,
+    appId:'practice',
+    appName:'연습 앱',
+    appKeyword:'연습 앱',
+    condId:'practice',
+    condLabel:'연습',
+    condWavy:false,
+    condSpin:false,
+    condDesc:'연습 시행',
+    perceivedDuration:practiceAns.q1,
+    timeEstimate:practiceAns.time,
+    speedPerception:practiceAns.q2,
+    speedPattern:practiceAns.q3,
+    progressPredictability:practiceAns.q4,
+    progressClarity:practiceAns.q5,
+    frustration:practiceAns.q6,
+    attention:practiceAns.q7,
+    satisfaction:practiceAns.q8,
+    exitIntent:practiceAns.q9,
+    usageIntent:practiceAns.q10,
+    preference:practiceAns.q11,
+    attentionDiverted:practiceAns.q12,
+
+    // Apps Script용 snake_case
+    trial_order:0,
+    app_name:'연습 앱',
+    app_keyword:'연습 앱',
+    condition_id:'practice',
+    condition_label:'연습',
+    condition_desc:'연습 시행',
+    perceived_duration:practiceAns.q1,
+    time_estimate:practiceAns.time,
+    speed_perception:practiceAns.q2,
+    speed_pattern:practiceAns.q3,
+    progress_predictability:practiceAns.q4,
+    progress_clarity:practiceAns.q5,
+    exit_intent:practiceAns.q9,
+    usage_intent:practiceAns.q10,
+    preference:practiceAns.q11
+  };
+
+  const trialRows = [practiceRow].concat(responses.map(r => ({
+    // 새 코드용 camelCase
+    trialOrder:r.trialOrder,
+    participantId:r.participantId,
+    latinRow:r.latinRow,
+    appOrder:r.appOrder,
+    appId:r.appId,
+    appName:r.appName,
+    appKeyword:r.appKeyword,
+    condId:r.condId,
+    condLabel:r.condLabel,
+    condWavy:r.condWavy,
+    condSpin:r.condSpin,
+    condDesc:r.condDesc,
+    perceivedDuration:r.perceivedDuration,
+    timeEstimate:r.timeEstimate,
+    speedPerception:r.speedPerception,
+    speedPattern:r.speedPattern,
+    progressPredictability:r.progressPredictability,
+    progressClarity:r.progressClarity,
+    frustration:r.frustration,
+    attention:r.attention,
+    satisfaction:r.satisfaction,
+    exitIntent:r.exitIntent,
+    usageIntent:r.usageIntent,
+    preference:r.preference,
+    attentionDiverted:r.attentionDiverted,
+
+    // Apps Script용 snake_case
+    trial_order:r.trialOrder,
+    app_name:r.appName,
+    app_keyword:r.appKeyword,
+    condition_id:r.condId,
+    condition_label:r.condLabel,
+    condition_desc:r.condDesc || r.condLabel,
+    perceived_duration:r.perceivedDuration,
+    time_estimate:r.timeEstimate,
+    speed_perception:r.speedPerception,
+    speed_pattern:r.speedPattern,
+    progress_predictability:r.progressPredictability,
+    progress_clarity:r.progressClarity,
+    exit_intent:r.exitIntent,
+    usage_intent:r.usageIntent,
+    preference:r.preference
+  })));
+
+  const payload={
+    participant_id:PID,
+    order:ORDER.map(x=>String.fromCharCode(65+x)).join(','),
+    order_used:ORDER.map(x=>String.fromCharCode(65+x)).join(','),
+    submitted_at:new Date().toISOString(),
+    final_shortest:finalShortSel!==null ? String.fromCharCode(65+finalShortSel) : '',
+    final_preferred:finalPrefSel!==null ? String.fromCharCode(65+finalPrefSel) : '',
+    reason:reason,
+    trials:trialRows
+  };
+
+  try{
+    await fetch(GAS,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
+    btn.textContent='✓ 제출 완료';
+    btn.style.background='rgba(36,180,126,.35)';
+    st.textContent='전송 요청이 완료되었습니다. 구글 시트를 새로고침해 확인해주세요.';
+    st.style.color='#43e97b';
+  }catch(err){
+    btn.disabled=false;
+    btn.textContent='응답 데이터 제출';
+    st.textContent='전송 실패 — CSV를 저장해 실험자에게 전달해주세요.';
+    st.style.color='#ff6b6b';
+  }
+}
+
+function downloadCSV(){
+  const reason=(document.getElementById('reason-txt')?.value||'').trim();
+  const hdr='pid,trial_order,app_order,cond_id,cond_label,cond_wavy,cond_spin,app_name,app_keyword,perceived_duration,time_estimate,speed_perception,speed_pattern,progress_predictability,progress_clarity,frustration,attention,satisfaction,exit_intent,usage_intent,preference,attention_diverted\n';
+  const practiceCsvRow = `${PID},0,0,practice,연습,false,false,"연습 앱","연습 앱",${practiceAns.q1},${practiceAns.time},${practiceAns.q2},${practiceAns.q3},${practiceAns.q4},${practiceAns.q5},${practiceAns.q6},${practiceAns.q7},${practiceAns.q8},${practiceAns.q9},${practiceAns.q10},${practiceAns.q11},${practiceAns.q12}`;
+  const realRows=responses.map(r=>`${r.participantId},${r.trialOrder},${r.appOrder},${r.condId},${r.condLabel},${r.condWavy},${r.condSpin},"${String(r.appName).replaceAll('"','""')}","${String(r.appKeyword).replaceAll('"','""')}",${r.perceivedDuration},${r.timeEstimate},${r.speedPerception},${r.speedPattern},${r.progressPredictability},${r.progressClarity},${r.frustration},${r.attention},${r.satisfaction},${r.exitIntent},${r.usageIntent},${r.preference},${r.attentionDiverted}`).join('\n');
+  const rows = [practiceCsvRow, realRows].filter(Boolean).join('\n');
+  const csv=hdr+rows+`\n\nfinal_shortest,final_preferred,reason\n${finalShortSel},${finalPrefSel},"${reason.replaceAll('"','""')}"\n\norder_used\n${ORDER.map(x=>x+1).join(',')}`;
+  const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const u=URL.createObjectURL(b), a=document.createElement('a');
+  a.href=u; a.download=`exp_p${PID}_${Date.now()}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
+function starsHtml(r,small=false){
+  const full=Math.floor(r), half=r%1>=0.5?1:0, empty=5-full-half;
+  const sz=small?11:13, col='#FF9F0A', gap=small?'0px':'0.5px';
+  const star=(filled,h)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 12 12" fill="${filled?col:'none'}" style="flex-shrink:0;${h?'clip-path:inset(0 50% 0 0)':''}"><path d="M6 1l1.4 3h3.1l-2.5 1.9 1 3L6 7.2 3 8.9l1-3L1.5 4H4.6z" fill="${filled?col:'none'}" stroke="${col}" stroke-width="${filled?0:1}" opacity="${filled?1:.3}"/></svg>`;
+  const stars=[...Array(full)].map(()=>star(true,false))
+    .concat(half?[star(true,true)]:[])
+    .concat([...Array(empty)].map(()=>star(false,false)));
+  return `<span style="display:inline-flex;align-items:center;gap:${gap}">${stars.join('')}</span>`;
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function escAttr(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function qSvg(color='#8e8e93'){return `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><circle cx="6.5" cy="6.5" r="5" stroke="${color}" stroke-width="1.6"/><path d="M10.5 10.5l3 3" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/></svg>`}
+/* ═══════════════════════════════════════════
+   SUBMIT
+═══════════════════════════════════════════ */
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const startBtn=document.getElementById('start-btn');
+  if(startBtn){
+    startBtn.addEventListener('click',(e)=>{e.preventDefault(); startExp();});
+  }
+  const pidInput=document.getElementById('pid-inp');
+  if(pidInput){
+    pidInput.addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.preventDefault(); startExp();}});
+  }
+});
+
+</script>
+
+</body>
+</html>
